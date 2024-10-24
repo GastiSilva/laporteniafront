@@ -2,10 +2,8 @@
   <AdminLayout>
     <q-page class="login-page"> <!-- Clase para la página de inicio de sesión -->
       <div class="login-container"> <!-- Contenedor para centrar el login -->
-        <q-card class="q-pa-md" style="max-width: 600px; background-color: rgba(255, 255, 255, 0.9); margin: 0;"> <!-- Fondo blanco semi-transparente -->
-          <q-card-section>
-            <div class="text-h6">Iniciar sesión</div>
-          </q-card-section>
+        <q-card class="q-pa-md login-card" style="max-width: 600px; background-color: rgba(255, 255, 255, 0.9); margin: 0;"> <!-- Fondo blanco semi-transparente -->
+
           <q-card-section>
             <q-form @submit.prevent="login">
               <!-- Campo de nombre de usuario -->
@@ -16,7 +14,7 @@
                 outlined
                 required
                 class="q-mb-md" 
-                style="min-height: 50px;"
+                style="min-height: 50px;" 
               />
 
               <!-- Campo de contraseña -->
@@ -107,5 +105,13 @@ export default {
   justify-content: center; /* Centra el contenido horizontalmente */
   align-items: center; /* Centra el contenido verticalmente */
   height: 100vh; /* Ocupa toda la altura de la ventana */
+  width: 100%;
+}
+
+.login-card {
+  width: 100%; /* Ajustar el ancho */
+  max-width: 500px; /* Tamaño máximo del cuadro de login */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Agregar sombra */
+  border-radius: 10px; /* Borde redondeado */
 }
 </style>
