@@ -69,8 +69,8 @@
               class="q-pa-md"
             >
               <q-tab-panel name="remitos">
-                <div class="text-h4 q-mb-md">Remitos</div>
-                <p>Contenido específico para gestionar remitos.</p>
+                <div class="text-h4 q-mb-md">Manejo de remitos</div>
+                <RemitosView/>
               </q-tab-panel>
   
               <q-tab-panel name="tablas">
@@ -93,11 +93,14 @@
       </div>
     </AdminLayout>
   </template>
-  
+
   <script>
   import { ref, watch } from 'vue';
-  
+  import RemitosView from '../../components/RemitosVIew.vue';
   export default {
+    components: {
+      RemitosView,
+    },
     setup() {
       const splitterModel = ref(20); // Ancho inicial del panel izquierdo
       const tab = ref('remitos');    // Pestaña seleccionada por defecto
