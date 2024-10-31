@@ -1,10 +1,11 @@
 import axios from 'axios';
+import { api } from 'boot/axios';
 
-export const loginUserAPI = async (username, password) => {
+export const loginUserAPI = async (Usuario, Contrasenia) => {
   try {
-    const response = await axios.post('/login', {
-      username,
-      password,
+    const response = await api.post('/login', {
+      Usuario,
+      Contrasenia,
     });
     return response.data; 
   } catch (error) {
