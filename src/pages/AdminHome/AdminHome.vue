@@ -52,7 +52,7 @@
 
 <script>
 import { ref, watch } from 'vue';
-import RemitosView from '../../components/RemitosVIew.vue';
+import RemitosView from '../../components/Remitos/RemitosVIew.vue';
 export default {
   components: {
     RemitosView,

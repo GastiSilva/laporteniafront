@@ -60,8 +60,6 @@
               <q-input v-model="subTotal" label="Sub Total" type="number" outlined class="q-ma-sm"
                 :error="!subTotal && errorIntento" />
             </div>
-            <!-- <q-select outlined class="w-40" v-model="selectedEstado" :options="estadoOptions" label="Estado" dense
-              clearable /> -->
           </div>
           <div class="row q-col-gutter-md">
             <div class="col-2">
@@ -70,10 +68,16 @@
             </div>
           </div>
 
+          <!-- Botón para agregar el producto a la tabla -->
+          <q-btn @click="agregarProducto" label="Agregar Producto" color="primary" class="q-ma-xs" />
 
           <!-- Botón para descargar PDF -->
           <q-btn @click="downloadPDF" label="Descargar Remito PDF" color="primary" class="q-ma-xs" />
           <q-btn flat label="Volver" color="secondary" class="q-ma-md" @click="setCurrentView('main')" />
+
+          <!-- Mostrar tabla de productos -->
+          <q-table :rows="productos" :columns="columns" row-key="codigo" />
+
           <q-banner v-if="errorMessage" color="negative">
             {{ errorMessage }}
           </q-banner>
@@ -81,13 +85,7 @@
 
         <!-- Vista de Consultar Remito -->
         <div v-if="currentView === 'consultar'">
-          <h3>Consultar Remito</h3>
-          <q-input v-model="codigoRemito" label="Código de Remito" outlined class="q-ma-sm" />
-          <q-btn label="Buscar" color="primary" class="q-ma-sm" @click="buscarRemito" />
-          <q-btn flat label="Volver" color="secondary" class="q-ma-md" @click="setCurrentView('main')" />
-          <div v-if="resultado">
-            <p>Detalles del remito: {{ resultado }}</p>
-          </div>
+          <ConsultarRemito @click="setCurrentView('main')" />
         </div>
       </div>
     </q-page-container>
@@ -96,8 +94,13 @@
 
 <script>
 import { ref } from 'vue';
+import ConsultarRemito from './components/ConsultarRemito.vue';
+
 
 export default {
+  components: {
+    ConsultarRemito
+  },
   setup() {
     const currentView = ref('main'); // Controla la vista actual
     const estadoOptions = ['Pagado', 'Adeudado', 'Pendiente'];
@@ -116,6 +119,15 @@ export default {
 
     const codigoRemito = ref('');
     const resultado = ref(null);
+
+    const productos = ref([]);
+    const columns = ref([
+      { name: 'codigo', label: 'Código', align: 'left', field: row => row.codigo },
+      { name: 'producto', label: 'Producto', align: 'left', field: row => row.producto },
+      { name: 'cantidad', label: 'Cantidad', align: 'left', field: row => row.cantidad },
+      { name: 'precioUnitario', label: 'Precio Unitario', align: 'left', field: row => row.precioUnitario },
+      { name: 'subtotal', label: 'Sub Total', align: 'left', field: row => row.subtotal }
+    ]);
 
     const setCurrentView = (view) => {
       currentView.value = view;
@@ -142,6 +154,28 @@ export default {
       resultado.value = `Detalles del remito con código ${codigoRemito.value}`;
     };
 
+    const agregarProducto = () => {
+      if (codigo.value && producto.value && cantidad.value && precioUnitario.value) {
+        const nuevoProducto = {
+          codigo: codigo.value,
+          producto: producto.value,
+          cantidad: cantidad.value,
+          precioUnitario: precioUnitario.value,
+          subtotal: cantidad.value * precioUnitario.value
+        };
+        productos.value.push(nuevoProducto);
+
+        // Limpiar los campos después de agregar el producto
+        codigo.value = '';
+        producto.value = '';
+        cantidad.value = null;
+        precioUnitario.value = '';
+        subtotal.value = '';
+      } else {
+        errorMessage.value = 'Por favor, complete todos los campos antes de agregar el producto.';
+      }
+    };
+
     return {
       currentView,
       setCurrentView,
@@ -161,6 +195,9 @@ export default {
       codigoRemito,
       resultado,
       buscarRemito,
+      productos,
+      columns,
+      agregarProducto
     };
   },
 };
