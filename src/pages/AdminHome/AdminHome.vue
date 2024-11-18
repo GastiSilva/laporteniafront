@@ -11,11 +11,13 @@
             <q-tabs v-model="tab" vertical class="tabs-lateral text-white"
               :style="menuCollapsed ? 'width: 50px;' : 'width: 100%;'">
               <!-- Tabs con íconos y etiquetas -->
-              <q-tab name="remitos" icon="description" :label="!menuCollapsed ? 'Remitos' : ''" class="tab-item" />
-              <q-tab name="movimientos" icon="table_chart" :label="!menuCollapsed ? 'Movimientos' : ''"
+              <q-tab name="remitos" icon="fa-solid fa-file-invoice-dollar" :label="!menuCollapsed ? 'Remitos' : ''"
                 class="tab-item" />
-              <q-tab name="datos" icon="print" :label="!menuCollapsed ? 'Datos' : ''" class="tab-item" />
-              <q-tab name="consultarCV" icon="search" :label="!menuCollapsed ? 'Consultar CV' : ''" class="tab-item" />
+              <q-tab name="movimientos" icon="fa-solid fa-table-list" :label="!menuCollapsed ? 'Movimientos' : ''"
+                class="tab-item" />
+              <q-tab name="datos" icon="fa-solid fa-print" :label="!menuCollapsed ? 'Datos' : ''" class="tab-item" />
+              <q-tab name="consultarCV" icon="fa-solid fa-folder" :label="!menuCollapsed ? 'Consultar CV' : ''"
+                class="tab-item" />
             </q-tabs>
           </div>
         </template>
@@ -29,9 +31,8 @@
               <RemitosView />
             </q-tab-panel>
 
-            <q-tab-panel name="tablas">
-              <div class="text-h4 q-mb-md">Tablas</div>
-              <p>Información sobre diferentes tablas en el sistema.</p>
+            <q-tab-panel name="movimientos">
+              <TablasView />
             </q-tab-panel>
 
             <q-tab-panel name="datos">
@@ -53,9 +54,12 @@
 <script>
 import { ref, watch } from 'vue';
 import RemitosView from '../../components/Remitos/RemitosVIew.vue';
+import TablasView from '../../components/Tablas/TablasView.vue';
+
 export default {
   components: {
     RemitosView,
+    TablasView
   },
   setup() {
     const splitterModel = ref(20); // Ancho inicial del panel izquierdo

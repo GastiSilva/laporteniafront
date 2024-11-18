@@ -19,6 +19,7 @@ const routes = [
     name: 'AdminHome',
     component: Admin, // Ruta para Home administrativo
   },
+
   // Otras rutas...
 ];
 

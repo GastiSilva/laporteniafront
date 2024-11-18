@@ -1,6 +1,6 @@
 import { api } from 'boot/axios';
 
-export const RemitoPDF = async () => {
+export const RemitoPDFAPI = async () => {
   try {
     const response = await api.post('/generarRemito', null, { // Usa `null` si no hay datos en el cuerpo
       responseType: 'blob', // Mover esto aquí

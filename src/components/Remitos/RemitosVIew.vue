@@ -57,8 +57,8 @@
                 :error="!precioUnitario && errorIntento" />
             </div>
             <div class="col-5">
-              <q-input v-model="subTotal" label="Sub Total" type="number" outlined class="q-ma-sm"
-                :error="!subTotal && errorIntento" />
+              <q-input v-model="subtotal" label="Sub Total" type="number" outlined class="q-ma-sm"
+                :error="!subtotal && errorIntento" />
             </div>
           </div>
           <div class="row q-col-gutter-md">
@@ -85,7 +85,7 @@
 
         <!-- Vista de Consultar Remito -->
         <div v-if="currentView === 'consultar'">
-          <ConsultarRemito @click="setCurrentView('main')" />
+          <ConsultarRemito :setCurrentView="setCurrentView" />
         </div>
       </div>
     </q-page-container>
@@ -95,6 +95,8 @@
 <script>
 import { ref } from 'vue';
 import ConsultarRemito from './components/ConsultarRemito.vue';
+import { RemitoPDFAPI } from 'src/pages/AdminHome/service/AdminAPI';
+
 
 
 export default {
@@ -137,14 +139,14 @@ export default {
       errorMessage.value = '';
       errorIntento.value = false;
 
-      if (!senior.value || !domicilio.value || !codigo.value || !producto.value || !cantidad.value || !fecha.value) {
+      if (!senior.value || !domicilio.value || !fecha.value) {
         errorIntento.value = true;
         errorMessage.value = 'Por favor, complete todos los campos obligatorios.';
         return;
       }
 
       try {
-        // Lógica para descargar PDF (pendiente)
+        await RemitoPDFAPI();
       } catch (error) {
         errorMessage.value = 'Error al descargar el PDF: ' + error.message;
       }
