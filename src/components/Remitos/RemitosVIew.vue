@@ -76,7 +76,16 @@
           <q-btn flat label="Volver" color="secondary" class="q-ma-md" @click="setCurrentView('main')" />
 
           <!-- Mostrar tabla de productos -->
-          <q-table :rows="productos" :columns="columns" row-key="codigo" />
+          <q-table :rows="productos" :columns="columns" row-key="codigo">
+            <template v-slot:body-cell-actions="props">
+              <q-td align="center">
+                <div style="display: flex; justify-content: flex-end; ">
+                  <q-btn icon="fa-solid fa-trash-can" flat dense color="negative"
+                    @click="deleteProducto(props.row.codigo)" />
+                </div>
+              </q-td>
+            </template>
+          </q-table>
 
           <q-banner v-if="errorMessage" color="negative">
             {{ errorMessage }}
@@ -128,7 +137,8 @@ export default {
       { name: 'producto', label: 'Producto', align: 'left', field: row => row.producto },
       { name: 'cantidad', label: 'Cantidad', align: 'left', field: row => row.cantidad },
       { name: 'precioUnitario', label: 'Precio Unitario', align: 'left', field: row => row.precioUnitario },
-      { name: 'subtotal', label: 'Sub Total', align: 'left', field: row => row.subtotal }
+      { name: 'subtotal', label: 'Sub Total', align: 'left', field: row => row.subtotal },
+      { name: 'actions', label: 'Acciones', align: 'right' }
     ]);
 
     const setCurrentView = (view) => {
@@ -178,6 +188,11 @@ export default {
       }
     };
 
+    //tabla
+    const deleteProducto = (codigo) => {
+      productos.value = productos.value.filter((producto) => producto.codigo !== codigo);
+    };
+
     return {
       currentView,
       setCurrentView,
@@ -199,7 +214,8 @@ export default {
       buscarRemito,
       productos,
       columns,
-      agregarProducto
+      agregarProducto,
+      deleteProducto
     };
   },
 };
