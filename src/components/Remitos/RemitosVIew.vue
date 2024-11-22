@@ -14,11 +14,9 @@
         <!-- Vista de Generar Remito -->
         <div v-if="currentView === 'generar'">
           <h4 class="titulo-rem">Generar Remito</h4>
-          <!-- Todo el contenido del template para "Generar Remito" -->
           <div class="row q-col-gutter-md">
             <div class="col-5">
-              <q-select v-model="fecha" label="Fecha (Año, Mes, Dia)" outlined class="q-ma-sm"
-                :error="!fecha && errorIntento" dense>
+              <q-select v-model="fecha" label="Fecha (Año, Mes, Día)" outlined class="q-ma-sm" :error="!fecha && errorIntento" dense>
                 <template v-slot:append>
                   <q-icon name="event" />
                 </template>
@@ -34,44 +32,40 @@
               <q-input v-model="senior" label="Señor" outlined class="q-ma-sm" :error="!senior && errorIntento" />
             </div>
             <div class="col-6">
-              <q-input v-model="domicilio" label="Domicilio" outlined class="q-ma-sm"
-                :error="!domicilio && errorIntento" />
+              <q-input v-model="domicilio" label="Domicilio" outlined class="q-ma-sm" :error="!domicilio && errorIntento" />
             </div>
           </div>
+
           <div class="row q-col-gutter-md">
             <div class="col-2">
               <q-input v-model="codigo" label="Código" outlined class="q-ma-sm" :error="!codigo && errorIntento" />
             </div>
             <div class="col-10">
-              <q-input v-model="producto" label="Producto" outlined class="q-ma-sm"
-                :error="!producto && errorIntento" />
+              <q-input v-model="producto" label="Producto" outlined class="q-ma-sm" :error="!producto && errorIntento" />
             </div>
           </div>
+
           <div class="row q-col-gutter-md">
             <div class="col-2">
-              <q-input v-model="cantidad" label="Cantidad" type="number" outlined class="q-ma-sm"
-                :error="!cantidad && errorIntento" />
+              <q-input v-model="cantidad" label="Cantidad" type="number" outlined class="q-ma-sm" :error="!cantidad && errorIntento" />
             </div>
             <div class="col-5">
-              <q-input v-model="precioUnitario" label="Precio Unitario" type="number" outlined class="q-ma-sm"
-                :error="!precioUnitario && errorIntento" />
+              <q-input v-model="precioUnitario" label="Precio Unitario" type="number" outlined class="q-ma-sm" :error="!precioUnitario && errorIntento" />
             </div>
             <div class="col-5">
-              <q-input v-model="subtotal" label="Sub Total" type="number" outlined class="q-ma-sm"
-                :error="!subtotal && errorIntento" />
+              <!-- Subtotal calculado automáticamente -->
+              <q-input v-model="subtotal" label="Sub Total" type="number" outlined class="q-ma-sm" readonly />
             </div>
           </div>
+
           <div class="row q-col-gutter-md">
             <div class="col-2">
-              <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined class="q-ma-sm" dense
-                clearable :error="!selectedEstado && errorIntento" />
+              <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined class="q-ma-sm" dense clearable :error="!selectedEstado && errorIntento" />
             </div>
           </div>
 
           <!-- Botón para agregar el producto a la tabla -->
           <q-btn @click="agregarProducto" label="Agregar Producto" color="primary" class="q-ma-xs" />
-
-          <!-- Botón para descargar PDF -->
           <q-btn @click="downloadPDF" label="Descargar Remito PDF" color="primary" class="q-ma-xs" />
           <q-btn flat label="Volver" color="secondary" class="q-ma-md" @click="setCurrentView('main')" />
 
@@ -79,9 +73,8 @@
           <q-table :rows="productos" :columns="columns" row-key="codigo">
             <template v-slot:body-cell-actions="props">
               <q-td align="center">
-                <div style="display: flex; justify-content: flex-end; ">
-                  <q-btn icon="fa-solid fa-trash-can" flat dense color="negative"
-                    @click="deleteProducto(props.row.codigo)" />
+                <div style="display: flex; justify-content: flex-end;">
+                  <q-btn icon="fa-solid fa-trash-can" flat dense color="negative" @click="deleteProducto(props.row.codigo)" />
                 </div>
               </q-td>
             </template>
@@ -102,19 +95,19 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import ConsultarRemito from './components/ConsultarRemito.vue';
 import { RemitoPDFAPI } from 'src/pages/AdminHome/service/AdminAPI';
 
-
-
 export default {
   components: {
-    ConsultarRemito
+    ConsultarRemito,
   },
   setup() {
-    const currentView = ref('main'); // Controla la vista actual
+    const currentView = ref('main');
     const estadoOptions = ['Pagado', 'Adeudado', 'Pendiente'];
+
+    // Campos principales
     const fecha = ref('');
     const senior = ref('');
     const domicilio = ref('');
@@ -122,14 +115,18 @@ export default {
     const producto = ref('');
     const cantidad = ref(null);
     const precioUnitario = ref('');
-    const subtotal = ref('');
     const selectedEstado = ref(null);
+
+    // Campo subtotal calculado automáticamente
+    const subtotal = computed(() => {
+      console.log('Cantidad:', cantidad.value, 'Precio Unitario:', precioUnitario.value);
+      return cantidad.value && precioUnitario.value
+        ? parseFloat(cantidad.value) * parseFloat(precioUnitario.value)
+        : 0; // Cambié el valor por defecto a 0 en lugar de ''
+    });
 
     const errorMessage = ref('');
     const errorIntento = ref(false);
-
-    const codigoRemito = ref('');
-    const resultado = ref(null);
 
     const productos = ref([]);
     const columns = ref([
@@ -138,59 +135,53 @@ export default {
       { name: 'cantidad', label: 'Cantidad', align: 'left', field: row => row.cantidad },
       { name: 'precioUnitario', label: 'Precio Unitario', align: 'left', field: row => row.precioUnitario },
       { name: 'subtotal', label: 'Sub Total', align: 'left', field: row => row.subtotal },
-      { name: 'actions', label: 'Acciones', align: 'right' }
+      { name: 'actions', label: 'Acciones', align: 'right' },
     ]);
 
     const setCurrentView = (view) => {
       currentView.value = view;
     };
 
-    const downloadPDF = async () => {
-      errorMessage.value = '';
-      errorIntento.value = false;
-
-      if (!senior.value || !domicilio.value || !fecha.value) {
+    const validarCampos = (campos) => {
+      if (campos.some(campo => !campo)) {
         errorIntento.value = true;
         errorMessage.value = 'Por favor, complete todos los campos obligatorios.';
-        return;
+        return false;
       }
-
-      try {
-        await RemitoPDFAPI();
-      } catch (error) {
-        errorMessage.value = 'Error al descargar el PDF: ' + error.message;
-      }
-    };
-
-    const buscarRemito = () => {
-      resultado.value = `Detalles del remito con código ${codigoRemito.value}`;
+      return true;
     };
 
     const agregarProducto = () => {
-      if (codigo.value && producto.value && cantidad.value && precioUnitario.value) {
-        const nuevoProducto = {
+      if (validarCampos([codigo.value, producto.value, cantidad.value, precioUnitario.value])) {
+        productos.value.push({
           codigo: codigo.value,
           producto: producto.value,
-          cantidad: cantidad.value,
-          precioUnitario: precioUnitario.value,
-          subtotal: cantidad.value * precioUnitario.value
-        };
-        productos.value.push(nuevoProducto);
+          cantidad: parseFloat(cantidad.value),
+          precioUnitario: parseFloat(precioUnitario.value),
+          subtotal: subtotal.value,
+        });
 
-        // Limpiar los campos después de agregar el producto
+        // Limpiar campos
         codigo.value = '';
         producto.value = '';
         cantidad.value = null;
         precioUnitario.value = '';
-        subtotal.value = '';
-      } else {
-        errorMessage.value = 'Por favor, complete todos los campos antes de agregar el producto.';
+        errorMessage.value = '';
       }
     };
 
-    //tabla
+    const downloadPDF = async () => {
+      if (validarCampos([senior.value, domicilio.value, fecha.value])) {
+        try {
+          await RemitoPDFAPI();
+        } catch (error) {
+          errorMessage.value = 'Error al descargar el PDF: ' + error.message;
+        }
+      }
+    };
+
     const deleteProducto = (codigo) => {
-      productos.value = productos.value.filter((producto) => producto.codigo !== codigo);
+      productos.value = productos.value.filter(producto => producto.codigo !== codigo);
     };
 
     return {
@@ -209,13 +200,10 @@ export default {
       errorMessage,
       errorIntento,
       downloadPDF,
-      codigoRemito,
-      resultado,
-      buscarRemito,
       productos,
       columns,
       agregarProducto,
-      deleteProducto
+      deleteProducto,
     };
   },
 };
