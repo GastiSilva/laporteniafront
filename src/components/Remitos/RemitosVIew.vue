@@ -47,10 +47,10 @@
 
           <div class="row q-col-gutter-md">
             <div class="col-2">
-              <q-input v-model="cantidad" label="Cantidad" type="number" outlined class="q-ma-sm" :error="!cantidad && errorIntento" />
+              <q-input v-model="cantidad" label="Cantidad" type="text" outlined class="q-ma-sm" :error="!cantidad && errorIntento" />
             </div>
             <div class="col-5">
-              <q-input v-model="precioUnitario" label="Precio Unitario" type="number" outlined class="q-ma-sm" :error="!precioUnitario && errorIntento" />
+              <q-input v-model="precioUnitario" label="Precio Unitario" type="text" outlined class="q-ma-sm" :error="!precioUnitario && errorIntento" />
             </div>
             <div class="col-5">
               <!-- Subtotal calculado automáticamente -->
