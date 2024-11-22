@@ -16,11 +16,11 @@
                             class="col-2" />
                         <q-input v-model="filters.fecha" label="Fecha" type="date" outlined dense class="col-4" />
                     </div>
-                    <q-btn label="Agregar a la tabla" color="primary" @click="addProduct" class="q-mt-md col-3"
+                    <q-btn label="Agregar producto" color="primary" @click="addProduct" class="q-mt-md col-3"
                         borderer />
 
                     <!-- Tabla de productos -->
-                    <div class="q-mt-md" style="max-width: 800px;">
+                    <div class="q-mt-md" style="max-width: 80%;">
                         <q-table :rows="filteredProducts" :columns="columns" row-key="id" flat bordered
                             class="my-table-product">
                             <template v-slot:body-cell-actions="props">
@@ -30,6 +30,7 @@
                                 </q-td>
                             </template>
                         </q-table>
+                        <q-btn label="Guardar" color="green" @click="SendDatos" class="q-mt-md col-4" />
                     </div>
                 </div>
             </div>
@@ -40,6 +41,7 @@
 
 <script>
 import { ref, computed } from "vue";
+import { SaveProduccion } from "./service/AddDatosAPI";
 
 export default {
     setup() {
@@ -104,6 +106,28 @@ export default {
                 return fechaProducto >= fechaFiltro;
             });
         });
+        const SendDatos = async () => {
+            if (addedProducts.value.length === 0) {
+                alert("No hay productos para enviar.");
+                return;
+            }
+            try {
+                // Preparar el payload
+                const productos = addedProducts.value.map(({ producto, cantidad, fecha }) => ({
+                    nombre: producto,  // Nombre del producto
+                    cantidad,  // Cantidad del producto
+                    fecha,     // Fecha asociada
+                }));
+
+                const response = await SaveProduccion(productos);
+                alert("Datos enviados con éxito: " + response.message);
+                addedProducts.value = [];
+            } catch (error) {
+                console.error("Error al enviar los datos:", error);
+                alert(error.message || "Error al enviar los datos.");
+            }
+        };
+
 
         return {
             sections,
@@ -116,6 +140,7 @@ export default {
             removeProduct,
             // applyFilters,
             filteredProducts,
+            SendDatos
         };
     },
 };

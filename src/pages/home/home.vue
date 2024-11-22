@@ -1,13 +1,12 @@
 <template>
-    <div>primeta pagina</div>
-  </template>
-  
-  <script lang="ts">
-  export default {
-    name: 'HomePage',
-  };
-  
-  </script>
-  
-  <style scoped></style>
-  
+  <div>primera pagina</div>
+</template>
+
+<script lang="ts">
+export default {
+  name: 'HomePage',
+};
+
+</script>
+
+<style scoped></style>
