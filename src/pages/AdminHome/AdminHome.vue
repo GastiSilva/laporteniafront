@@ -5,7 +5,7 @@
       <q-splitter v-model="splitterModel" style="height: 100vh" :limits="[5, 30]">
         <!-- Menú lateral con colores personalizados -->
         <template v-slot:before>
-          <div :style="menuCollapsed ? 'width: 50px;' : 'width: 180px;'" class="menu-lateral q-pa-md">
+          <div :style="menuCollapsed ? 'width: 5%;' : 'width: 18%;'" class="menu-lateral q-pa-md">
             <!-- Botón para colapsar/expandir el menú -->
             <q-btn icon="menu" flat round dense @click="toggleMenu" class="q-mb-md text-white" />
             <q-tabs v-model="tab" vertical class="tabs-lateral text-white"
