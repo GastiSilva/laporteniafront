@@ -110,23 +110,20 @@ export default {
   align-items: center;
 }
 
-/* Estilo para las tabs */
 .tabs-lateral .q-tab__button {
-  color: white;
-  /* Color del texto e íconos de las tabs */
+  color: black;
+
 }
 
 /* Estilo para la pestaña activa */
 .tab-item.q-tab--active .q-tab__button {
   background-color: #1e88e5;
-  /* Color de fondo para la pestaña activa */
   color: white;
-  /* Color del texto y el ícono cuando la pestaña está activa */
+
 }
 
 /* Efecto hover en las tabs */
 .tabs-lateral .q-tab__button:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  /* Efecto hover en las tabs */
 }
 </style>

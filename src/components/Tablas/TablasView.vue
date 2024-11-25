@@ -11,7 +11,19 @@
 
                 <div v-if="selectedSection != null" class="q-mt-md">
                     <div class="row q-gutter-md items-center">
-                        <q-input v-model="newProduct.producto" label="Producto" outlined dense class="col-5" />
+                        <!-- <q-select v-model="selectedProduct" use-input :options="filteredProducts"
+                            @filter="filterProducts" label="Seleccionar producto" option-label="Nombre"
+                            option-value="Id_Producto" :loading="loading" emit-value clearable /> -->
+                        <!-- <div v-for="option in filteredProductsOptions" :key="option.value">
+                            {{ option.label }}
+                        </div> -->
+
+                        <q-select v-model="selectedProduct" :options="filteredProductsOptions" use-input
+                            option-label="label" option-value="value" label="Productos" @filter="filterProducts"
+                            @update:model-value="onSelectUpdate" outlined dense clearable class="col-5" />
+                        <!-- <q-input v-model="selectedProduct" label="Producto" outlined dense class="col-5" /> -->
+
+
                         <q-input v-model.number="newProduct.cantidad" label="Cantidad" type="number" outlined dense
                             class="col-2" />
                         <q-input v-model="filters.fecha" label="Fecha" type="date" outlined dense class="col-4" />
@@ -24,7 +36,7 @@
                         <q-table :rows="filteredProducts" :columns="columns" row-key="id" flat bordered
                             class="my-table-product">
                             <template v-slot:body-cell-actions="props">
-                                <q-td style="display: flex; justify-content: flex-end; ">
+                                <q-td style="display: flex; justify-content: flex-end;">
                                     <q-btn flat color="negative" icon="fa-solid fa-trash-can"
                                         @click="removeProduct(props.row.id)" />
                                 </q-td>
@@ -35,13 +47,12 @@
                 </div>
             </div>
         </q-page-container>
-
     </q-layout>
 </template>
 
 <script>
-import { ref, computed } from "vue";
-import { SaveProduccion } from "./service/AddDatosAPI";
+import { ref, computed, onMounted } from "vue";
+import { SaveProduccion, fetchProducts } from "./service/AddDatosAPI";
 
 export default {
     setup() {
@@ -52,20 +63,21 @@ export default {
             "Venta de Mercaderías",
         ];
 
+        const selectedProduct = ref(null);
+        const filteredProductsOptions = ref([]);
+        const allProducts = ref([]);
+
+        const products = ref([]); // Todos los productos cargados del backend
+        const loading = ref(true); // Estado de carga
         const selectedSection = ref(null);
-
-        const filters = ref({
-            fecha: "",
-        });
-
-        const newProduct = ref({
-            producto: "",
-            cantidad: null,
-            fecha: "",
-        });
-
+        const filters = ref({ fecha: "" });
+        const newProduct = ref({ producto: "", cantidad: null, fecha: "" });
         const addedProducts = ref([]);
-        let productId = 1; //modifcar cuando se carguen datois desde el back
+        let productId = 1;
+
+        const onSelectUpdate = (val) => {
+            console.log("Valor seleccionado:", val);
+        };
 
 
         const columns = [
@@ -76,49 +88,106 @@ export default {
         ];
 
         const addProduct = () => {
-            if (newProduct.value.producto && newProduct.value.cantidad > 0) {
-                addedProducts.value.push({
-                    id: productId++,
-                    producto: newProduct.value.producto,
-                    cantidad: newProduct.value.cantidad,
-                    fecha: filters.value.fecha || new Date().toISOString().slice(0, 10),
+
+            if (selectedProduct.value && newProduct.value.cantidad > 0) {
+                const productFound = filteredProductsOptions.value.find((product) => {
+                    return product.value === selectedProduct.value.value;
                 });
-                newProduct.value.producto = "";
-                newProduct.value.cantidad = null;
-                newProduct.value.fecha = "";
+
+                if (productFound) {
+                    addedProducts.value.push({
+                        id: productId++,
+                        producto: productFound.label,
+                        cantidad: newProduct.value.cantidad,
+                        fecha: filters.value.fecha || new Date().toISOString().slice(0, 10),
+                    });
+
+                    // Limpieza de campos
+                    selectedProduct.value = null;
+                    newProduct.value.cantidad = null;
+                    filters.value.fecha = "";
+                } else {
+                    console.error("El producto seleccionado no se encontró en las opciones filtradas.");
+                    alert("El producto seleccionado no se encontró. Por favor, inténtalo de nuevo.");
+                }
             } else {
-                alert("Por favor, ingresa un producto y una cantidad válida.");
+                alert("Por favor, selecciona un producto y una cantidad válida.");
             }
         };
 
+
+
+
         const removeProduct = (id) => {
-            addedProducts.value = addedProducts.value.filter((product) => product.id !== id);
+            addedProducts.value = addedProducts.value.filter(
+                (product) => product.id !== id
+            );
         };
 
-        // const applyFilters = () => {
-        //     // Aplica los filtros si es necesario
-        // };
-
         const filteredProducts = computed(() => {
-            return addedProducts.value.filter((product) => {
-                const fechaProducto = new Date(product.fecha);
-                const fechaFiltro = new Date(filters.value.fecha);
-                return fechaProducto >= fechaFiltro;
-            });
+            return addedProducts.value;
         });
+
+
+        function filterProducts(val, update) {
+            update(() => {
+                if (!val) {
+                    filteredProductsOptions.value = allProducts.value.map(function (product) {
+                        return {
+                            label: product.Nombre,
+                            value: product.Id_Producto
+                        };
+                    });
+                    return;
+                }
+
+                const search = val.toLowerCase();
+                filteredProductsOptions.value = allProducts.value
+                    .filter(function (product) {
+                        return product.Nombre.toLowerCase().includes(search);
+                    })
+                    .map(function (product) {
+                        return {
+                            label: product.Nombre,
+                            value: product.Id_Producto
+                        };
+                    });
+            });
+        }
+
+
+        const loadProducts = async () => {
+            try {
+                loading.value = true;
+                const productos = await fetchProducts();
+                allProducts.value = productos;
+                filteredProductsOptions.value = productos.map((product) => ({
+                    label: product.Nombre,
+                    value: product.Id_Producto,
+                }));
+            } catch (error) {
+                console.error("Error al cargar productos:", error);
+                alert("No se pudo cargar la lista de productos.");
+            } finally {
+                loading.value = false;
+            }
+        };
+
+
         const SendDatos = async () => {
             if (addedProducts.value.length === 0) {
                 alert("No hay productos para enviar.");
                 return;
             }
             try {
-                // Preparar el payload
-                const productos = addedProducts.value.map(({ producto, cantidad, fecha }) => ({
-                    nombre: producto,  // Nombre del producto
-                    cantidad,  // Cantidad del producto
-                    fecha,     // Fecha asociada
-                }));
-
+                const productos = addedProducts.value.map(
+                    ({ producto, cantidad, fecha }) => ({
+                        nombre: producto,
+                        cantidad,
+                        fecha,
+                    })
+                );
+                console.log("Productos a enviar:", productos);
                 const response = await SaveProduccion(productos);
                 alert("Datos enviados con éxito: " + response.message);
                 addedProducts.value = [];
@@ -128,6 +197,9 @@ export default {
             }
         };
 
+        onMounted(() => {
+            loadProducts();
+        });
 
         return {
             sections,
@@ -138,9 +210,15 @@ export default {
             columns,
             addProduct,
             removeProduct,
-            // applyFilters,
+            selectedProduct,
             filteredProducts,
-            SendDatos
+            filteredProductsOptions,
+            filterProducts,
+            loadProducts,
+            products,
+            loading,
+            onSelectUpdate,
+            SendDatos,
         };
     },
 };
@@ -148,7 +226,7 @@ export default {
 
 <style scoped>
 .q-page {
-    max-width: 600px;
+    max-width: 60%;
     margin: 0 auto;
 }
 
