@@ -2,7 +2,7 @@
   <AdminLayout>
     <div>
       <!-- Splitter para el layout principal -->
-      <q-splitter v-model="splitterModel" style="height: 100vh" :limits="[5, 30]">
+      <q-splitter v-model="splitterModel" class="custom-splitter" style="height: 100vh" :limits="[5, 30]">
         <!-- Menú lateral con colores personalizados -->
         <template v-slot:before>
           <div :style="menuCollapsed ? 'width: 10%;' : 'width: 45%;'" class="menu-lateral q-pa-md">
@@ -125,5 +125,17 @@ export default {
 /* Efecto hover en las tabs */
 .tabs-lateral .q-tab__button:hover {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+::v-deep .q-splitter__separator-area {
+  background-color: #3f51b5 !important;
+}
+
+/* Elimina la línea del separador */
+::v-deep .q-splitter__separator {
+  background-color: transparent !important;
+  border: none !important;
+  width: 0 !important;
+  display: none !important;
 }
 </style>

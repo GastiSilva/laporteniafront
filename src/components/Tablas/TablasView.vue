@@ -1,8 +1,7 @@
 <template>
     <q-layout>
         <q-page-container>
-            <h3 class="q-ml-md">Modificación de datos</h3>
-
+            <h4 class="q-ml-md">Modificación de tablas</h4>
             <div class="q-pa-md">
                 <div class="row q-gutter-md items-center">
                     <q-select v-model="selectedSection" :options="sections" label="Selecciona una sección" outlined
