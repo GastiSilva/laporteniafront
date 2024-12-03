@@ -27,8 +27,7 @@
           <q-tab-panels v-model="tab" animated swipeable vertical transition-prev="jump-up" transition-next="jump-up"
             class="q-pa-md">
             <q-tab-panel name="remitos">
-              <!-- <div class="text-h4 q-mb-md">Manejo de remitos</div> -->
-              <RemitosView />
+              <RemitosView :menuCollapsed="menuCollapsed" @toggleMenu="toggleMenu" />
             </q-tab-panel>
 
             <q-tab-panel name="movimientos">
@@ -94,6 +93,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 /* Estilos personalizados para el menú lateral */
