@@ -119,7 +119,6 @@ export default {
 .tab-item.q-tab--active .q-tab__button {
   background-color: #1e88e5;
   color: white;
-
 }
 
 /* Efecto hover en las tabs */
@@ -131,7 +130,6 @@ export default {
   background-color: #3f51b5 !important;
 }
 
-/* Elimina la línea del separador */
 ::v-deep .q-splitter__separator {
   background-color: transparent !important;
   border: none !important;
