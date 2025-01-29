@@ -188,6 +188,11 @@ export default {
                 );
                 console.log("Productos a enviar:", productos);
                 const response = await SaveProduccion(productos);
+                $q.notify({
+                    message: "Productos agregados con exito",
+                    color: "positive",
+                    position: "top",
+                });
                 alert("Datos enviados con éxito: " + response.message);
                 addedProducts.value = [];
             } catch (error) {

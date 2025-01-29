@@ -1,6 +1,6 @@
 <template>
   <AdminLayout>
-    <div>
+    <div class="all-container">
       <!-- Splitter para el layout principal -->
       <q-splitter v-model="splitterModel" class="custom-splitter" style="height: 100vh" :limits="[5, 30]">
         <!-- Menú lateral con colores personalizados -->
@@ -11,13 +11,26 @@
             <q-tabs v-model="tab" vertical class="tabs-lateral text-white"
               :style="menuCollapsed ? 'width: 50px;' : 'width: 100%;'">
               <!-- Tabs con íconos y etiquetas -->
-              <q-tab name="remitos" icon="fa-solid fa-file-invoice-dollar" :label="!menuCollapsed ? 'Remitos' : ''"
-                class="tab-item" />
-              <q-tab name="movimientos" icon="fa-solid fa-table-list" :label="!menuCollapsed ? 'Movimientos' : ''"
-                class="tab-item" />
-              <q-tab name="datos" icon="fa-solid fa-print" :label="!menuCollapsed ? 'Datos' : ''" class="tab-item" />
-              <q-tab name="consultarCV" icon="fa-solid fa-folder" :label="!menuCollapsed ? 'Consultar CV' : ''"
-                class="tab-item" />
+                <q-tab name="remitos" icon="fa-solid fa-file-invoice-dollar" :label="!menuCollapsed ? 'Remitos' : ''"
+                class="tab-item">
+                <q-tooltip anchor="top middle" self="bottom middle">
+                  Remitos
+                </q-tooltip>
+                </q-tab>
+                <q-tab name="movimientos" icon="fa-solid fa-table-list" :label="!menuCollapsed ? 'Movimientos' : ''"
+                class="tab-item">
+                <q-tooltip anchor="top middle" self="bottom middle">
+                  Movimientos
+                </q-tooltip>
+                </q-tab>
+                <q-tab name="datos" icon="fa-solid fa-print" :label="!menuCollapsed ? 'Datos' : ''" class="tab-item">
+                <q-tooltip anchor="top middle" self="bottom middle">
+                  Datos
+                </q-tooltip>
+                </q-tab>
+                <q-tab v-if="false" name="consultarCV" icon="fa-solid fa-folder" :label="!menuCollapsed ? 'Consultar CV' : ''"
+                class="tab-item">
+                </q-tab>
             </q-tabs>
           </div>
         </template>
@@ -96,6 +109,8 @@ export default {
 
 
 <style scoped>
+
+
 /* Estilos personalizados para el menú lateral */
 .menu-lateral {
   background-color: #3f51b5;

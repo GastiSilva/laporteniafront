@@ -210,6 +210,7 @@ export default {
 </script>
 
 <style>
+
 .titulo-rem {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   color: #3f51b5;
