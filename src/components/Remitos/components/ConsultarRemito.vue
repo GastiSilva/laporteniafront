@@ -1,29 +1,33 @@
 <template>
     <q-page-container>
-        <!-- Contenedor principal con @click.stop para evitar propagación de clics -->
-        <div class="q-pa-md" @click.stop>
-            <!-- Título de la vista -->
-            <h3>Consultar Remito</h3>
+        <div @click.stop>
+            <h4 class="q-mb-md q-mt-md">Consultar Remito</h4>
 
-            <!-- Botón Volver -->
-            <q-btn flat label="Volver" color="secondary" class="q-ma-md" @click="goBack" />
+             <div justify-between class="row ">
 
-            <!-- Campo de búsqueda global alineado a la derecha -->
-            <q-input v-model="filter" label="Buscar Remito" outlined debounce="300" class="q-ma-sm search-input"
-                :clearable="true" />
+                 <q-btn flat label="Volver"  text-color="white" class="q-ma-md" @click="goBack" rounded style="background-color:#0e1d75;" />
+    
+                 <q-input v-model="filter" label="Buscar Remito" outlined debounce="300" class="q-ma-sm search-input" style="background-color: white;" :clearable="true">
+                     <template #append>
+                         <q-icon name="search" />
+                     </template>
+                 </q-input>
+             </div>
 
             <!-- Tabla de remitos -->
             <q-table :rows="paginatedRemitos" :columns="columns" row-key="id" flat bordered>
+                <template v-slot:header="props">
+                    <q-tr :props="props">
+                        <q-th v-for="col in props.cols" :key="col.name" :props="props" style="background-color: #0e1d75;color: white;">
+                            {{ col.label }}
+                        </q-th>
+                    </q-tr>
+                </template>
                 <template v-slot:body-cell-actions="props">
                     <q-td align="center">
-                        <div style="display: flex; justify-content: flex-end; ">
-
-                            <q-btn icon="fa-solid fa-circle-down" flat dense color="primary"
-                                @click="downloadRemito(props.row)" />
-
-                            <!-- Botón Eliminar -->
-                            <q-btn icon="fa-solid fa-trash-can" flat dense color="negative"
-                                @click="deleteRemito(props.row.id)" />
+                        <div style="display: flex; justify-content: flex-end;">
+                            <q-btn icon="fa-solid fa-circle-down" flat dense color="primary" @click="downloadRemito(props.row)" />
+                            <q-btn icon="fa-solid fa-trash-can" flat dense color="negative" @click="deleteRemito(props.row.id)" />
                         </div>
                     </q-td>
                 </template>
@@ -59,9 +63,9 @@ export default {
 
         const columns = [
             { name: "numero", label: "Nro Remito", align: "left", field: "numero" },
-            { name: "cliente", label: "Cliente", align: "left", field: "cliente" },
+            { name: "cliente", label: "Cliente", align: "center", field: "cliente" },
             { name: "fecha", label: "Fecha", align: "center", field: "fecha" },
-            { name: "total", label: "Total", align: "right", field: "total" },
+            { name: "total", label: "Total", align: "center", field: row => `$${parseFloat(row.total).toFixed(2)}` },
             { name: "actions", label: "Acciones", align: "right" },
         ];
 

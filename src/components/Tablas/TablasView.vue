@@ -1,12 +1,13 @@
 <template>
     <q-layout>
         <q-page-container>
-            <h4 class="q-ml-md">Modificación de tablas</h4>
-            <div class="q-pa-md">
-                <div class="row q-gutter-md items-center">
-                    <q-select v-model="selectedSection" :options="sections" label="Selecciona una sección" outlined
-                        dense class="col-4" />
-                </div>
+            <h5 class="q-mb-md q-mt-md">Modificación de tablas</h5>
+
+            <div class="row items-center q-mb-none">
+                <q-select v-model="selectedSection" :options="sections" label="Selecciona una sección" outlined
+                    dense class="col-4" />
+            </div>
+            <div>
 
                 <div v-if="selectedSection != null" class="q-mt-md">
                     <div class="row q-gutter-md items-center">
@@ -34,6 +35,13 @@
                     <div class="q-mt-md" style="max-width: 80%;">
                         <q-table :rows="filteredProducts" :columns="columns" row-key="id" flat bordered
                             class="my-table-product">
+                            <template v-slot:header="props">
+                                <q-tr :props="props">
+                                    <q-th v-for="col in props.cols" :key="col.name" :props="props" style="background-color: #0e1d75; color: white;">
+                                        {{ col.label }}
+                                    </q-th>
+                                </q-tr>
+                            </template>
                             <template v-slot:body-cell-actions="props">
                                 <q-td style="display: flex; justify-content: flex-end;">
                                     <q-btn flat color="negative" icon="fa-solid fa-trash-can"
@@ -188,11 +196,6 @@ export default {
                 );
                 console.log("Productos a enviar:", productos);
                 const response = await SaveProduccion(productos);
-                $q.notify({
-                    message: "Productos agregados con exito",
-                    color: "positive",
-                    position: "top",
-                });
                 alert("Datos enviados con éxito: " + response.message);
                 addedProducts.value = [];
             } catch (error) {

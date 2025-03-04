@@ -4,10 +4,21 @@
     <q-page-container>
       <div class="q-pa-md">
         <!-- Vista inicial con los botones -->
-        <div v-if="currentView === 'main'">
-          <div class="row justify-center q-gutter-md">
-            <q-btn @click="setCurrentView('generar')" label="Generar Remito" color="primary" />
-            <q-btn @click="setCurrentView('consultar')" label="Consultar Remito" color="secondary" />
+        <div v-if="currentView === 'main'" class="q-pa-md flex flex-center">
+          <div class="row justify-center q-gutter-md q-ma-xl">
+
+            <q-btn @click="setCurrentView('generar')" color="primary" class="q-pa-lg column items-center" rounded>
+              <img class="w-[80px] h-[80px] q-mb-lg q-ml-md q-mr-md" src="~assets/file-invoice-dollar-solid.svg"
+                alt="iconLuz" style="filter: invert(1);" />
+              <span class="text-white text-bold">Generar Remito</span>
+            </q-btn>
+
+
+            <q-btn @click="setCurrentView('consultar')" color="secondary" class="q-pa-lg column items-center" rounded>
+              <img class="w-[80px] h-[80px] q-mb-lg q-ml-md q-mr-md" src="~assets/buscaricon.svg" alt="iconBuscar"
+                style="filter: invert(1);" />
+              <span class="text-white text-bold">Consultar Remito</span>
+            </q-btn>
           </div>
         </div>
 
@@ -16,7 +27,8 @@
           <h4 class="titulo-rem">Generar Remito</h4>
           <div class="row q-col-gutter-md">
             <div class="col-5">
-              <q-select v-model="fecha" label="Fecha (Año, Mes, Día)" outlined class="q-ma-sm" :error="!fecha && errorIntento" dense>
+              <q-select v-model="fecha" label="Fecha (Año, Mes, Día)" outlined class="q-ma-sm"
+                :error="!fecha && errorIntento" dense>
                 <template v-slot:append>
                   <q-icon name="event" />
                 </template>
@@ -32,7 +44,8 @@
               <q-input v-model="senior" label="Señor" outlined class="q-ma-sm" :error="!senior && errorIntento" />
             </div>
             <div class="col-6">
-              <q-input v-model="domicilio" label="Domicilio" outlined class="q-ma-sm" :error="!domicilio && errorIntento" />
+              <q-input v-model="domicilio" label="Domicilio" outlined class="q-ma-sm"
+                :error="!domicilio && errorIntento" />
             </div>
           </div>
 
@@ -41,16 +54,19 @@
               <q-input v-model="codigo" label="Código" outlined class="q-ma-sm" :error="!codigo && errorIntento" />
             </div>
             <div class="col-10">
-              <q-input v-model="producto" label="Producto" outlined class="q-ma-sm" :error="!producto && errorIntento" />
+              <q-input v-model="producto" label="Producto" outlined class="q-ma-sm"
+                :error="!producto && errorIntento" />
             </div>
           </div>
 
           <div class="row q-col-gutter-md">
             <div class="col-2">
-              <q-input v-model="cantidad" label="Cantidad" type="text" outlined class="q-ma-sm" :error="!cantidad && errorIntento" />
+              <q-input v-model="cantidad" label="Cantidad" type="text" outlined class="q-ma-sm"
+                :error="!cantidad && errorIntento" />
             </div>
             <div class="col-5">
-              <q-input v-model="precioUnitario" label="Precio Unitario" type="text" outlined class="q-ma-sm" :error="!precioUnitario && errorIntento" />
+              <q-input v-model="precioUnitario" label="Precio Unitario" type="text" outlined class="q-ma-sm"
+              :error="!precioUnitario && errorIntento"  />
             </div>
             <div class="col-5">
               <!-- Subtotal calculado automáticamente -->
@@ -60,7 +76,8 @@
 
           <div class="row q-col-gutter-md">
             <div class="col-2">
-              <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined class="q-ma-sm" dense clearable :error="!selectedEstado && errorIntento" />
+              <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined class="q-ma-sm" dense
+                clearable :error="!selectedEstado && errorIntento" />
             </div>
           </div>
 
@@ -71,10 +88,19 @@
 
           <!-- Mostrar tabla de productos -->
           <q-table :rows="productos" :columns="columns" row-key="codigo">
+            <template v-slot:header="props">
+              <q-tr :props="props">
+                <q-th v-for="col in props.cols" :key="col.name" :props="props"
+                  style="background-color: #0e1d75; color: white;">
+                  {{ col.label }}
+                </q-th>
+              </q-tr>
+            </template>
             <template v-slot:body-cell-actions="props">
               <q-td align="center">
                 <div style="display: flex; justify-content: flex-end;">
-                  <q-btn icon="fa-solid fa-trash-can" flat dense color="negative" @click="deleteProducto(props.row.codigo)" />
+                  <q-btn icon="fa-solid fa-trash-can" flat dense color="negative"
+                    @click="deleteProducto(props.row.codigo)" />
                 </div>
               </q-td>
             </template>
@@ -210,7 +236,6 @@ export default {
 </script>
 
 <style>
-
 .titulo-rem {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   color: #3f51b5;

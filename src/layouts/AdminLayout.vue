@@ -27,6 +27,7 @@
 
 <style scoped>
 /* Quitar sombras y bordes en el q-header */
+
 .no-shadow {
   box-shadow: none !important;
 }
