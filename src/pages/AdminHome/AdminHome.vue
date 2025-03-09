@@ -51,8 +51,7 @@
             </q-tab-panel>
 
             <q-tab-panel name="datos">
-              <div class="text-h4 q-mb-md">Datos</div>
-              <p>Panel de análisis de datos y reportes.</p>
+              <ExportarDatosView />
             </q-tab-panel>
 
             <q-tab-panel name="consultarCV">
@@ -70,11 +69,13 @@
 import { ref, watch } from 'vue';
 import RemitosView from '../../components/Remitos/RemitosVIew.vue';
 import TablasView from '../../components/Tablas/TablasView.vue';
+import ExportarDatosView from '../ExportarDatos/ExportarDatosView.vue';
 
 export default {
   components: {
     RemitosView,
-    TablasView
+    TablasView,
+    ExportarDatosView
   },
   setup() {
     const splitterModel = ref(20); // Ancho inicial del panel izquierdo
