@@ -120,8 +120,11 @@ export default {
 <style scoped>
 .search-input {
     margin-left: auto;
-    max-width: 300px;
+    width: min(100%, 400px);
+    height: 18px !important;
+    font-size: 0.75rem !important;
 }
+
 
 .q-btn {
     display: flex;

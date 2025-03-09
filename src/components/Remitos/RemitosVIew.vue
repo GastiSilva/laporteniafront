@@ -25,66 +25,62 @@
         <!-- Vista de Generar Remito -->
         <div v-if="currentView === 'generar'">
           <h4 class="titulo-rem">Generar Remito</h4>
-          <div class="row q-col-gutter-md">
+            <div class="row q-col-gutter-md">
             <div class="col-5">
-              <q-select v-model="fecha" label="Fecha (Año, Mes, Día)" outlined class="q-ma-sm"
-                :error="!fecha && errorIntento" dense>
-                <template v-slot:append>
-                  <q-icon name="event" />
-                </template>
-                <q-popup-proxy cover>
-                  <q-date v-model="fecha" mask="YYYY-MM-DD" format="DD/MM/YYYY" default-view="Calendar" />
-                </q-popup-proxy>
+              <q-select v-model="fecha" label="Fecha (Año, Mes, Día)" outlined class="q-ma-xs mi-q-select"
+              :error="!fecha && errorIntento" dense>
+              <template v-slot:append>
+                <q-icon name="event" />
+              </template>
+              <q-popup-proxy cover>
+                <q-date v-model="fecha" mask="YYYY-MM-DD" format="DD/MM/YYYY" default-view="Calendar" />
+              </q-popup-proxy>
               </q-select>
             </div>
-          </div>
+            </div>
 
-          <div class="row q-col-gutter-md">
+            <div class="row q-col-gutter-md">
             <div class="col-6">
-              <q-input v-model="senior" label="Señor" outlined class="q-ma-sm" :error="!senior && errorIntento" />
+              <q-input v-model="senior" label="Señor" outlined class="q-ma-xs" :error="!senior && errorIntento" dense />
             </div>
             <div class="col-6">
-              <q-input v-model="domicilio" label="Domicilio" outlined class="q-ma-sm"
-                :error="!domicilio && errorIntento" />
+              <q-input v-model="domicilio" label="Domicilio" outlined class="q-ma-xs" :error="!domicilio && errorIntento" dense />
             </div>
-          </div>
+            </div>
 
-          <div class="row q-col-gutter-md">
+            <div class="row q-col-gutter-md">
             <div class="col-2">
-              <q-input v-model="codigo" label="Código" outlined class="q-ma-sm" :error="!codigo && errorIntento" />
+              <q-input v-model="codigo" label="Código" outlined class="q-ma-xs" :error="!codigo && errorIntento" dense />
             </div>
             <div class="col-10">
-              <q-input v-model="producto" label="Producto" outlined class="q-ma-sm"
-                :error="!producto && errorIntento" />
+              <q-input v-model="producto" label="Producto" outlined class="q-ma-xs" :error="!producto && errorIntento" dense />
             </div>
-          </div>
+            </div>
 
-          <div class="row q-col-gutter-md">
+            <div class="row q-col-gutter-md">
             <div class="col-2">
-              <q-input v-model="cantidad" label="Cantidad" type="text" outlined class="q-ma-sm"
-                :error="!cantidad && errorIntento" />
+              <q-input v-model="cantidad" label="Cantidad" type="text" outlined class="q-ma-xs" :error="!cantidad && errorIntento" dense />
             </div>
             <div class="col-5">
-              <q-input v-model="precioUnitario" label="Precio Unitario" type="text" outlined class="q-ma-sm"
-              :error="!precioUnitario && errorIntento"  />
+              <q-input v-model="precioUnitario" label="Precio Unitario" type="text" outlined class="q-ma-xs" :error="!precioUnitario && errorIntento" dense />
             </div>
             <div class="col-5">
               <!-- Subtotal calculado automáticamente -->
-              <q-input v-model="subtotal" label="Sub Total" type="number" outlined class="q-ma-sm" readonly />
+              <q-input v-model="subtotal" label="Sub Total" type="number" outlined class="q-ma-xs" readonly dense />
             </div>
-          </div>
+            </div>
 
-          <div class="row q-col-gutter-md">
+            <div class="row q-col-gutter-md">
             <div class="col-2">
-              <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined class="q-ma-sm" dense
-                clearable :error="!selectedEstado && errorIntento" />
+              <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined class="q-ma-xs" dense
+              clearable :error="!selectedEstado && errorIntento" />
             </div>
-          </div>
+            </div>
 
           <!-- Botón para agregar el producto a la tabla -->
           <q-btn @click="agregarProducto" label="Agregar Producto" color="primary" class="q-ma-xs" />
           <q-btn @click="downloadPDF" label="Descargar Remito PDF" color="primary" class="q-ma-xs" />
-          <q-btn flat label="Volver" color="secondary" class="q-ma-md" @click="setCurrentView('main')" />
+          <q-btn flat label="Volver" text-color="white" class="q-ma-md" @click="setCurrentView('main')" rounded style="background-color:#0e1d75;" />
 
           <!-- Mostrar tabla de productos -->
           <q-table :rows="productos" :columns="columns" row-key="codigo">
@@ -240,4 +236,11 @@ export default {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   color: #3f51b5;
 }
+
+.q-input .q-field__control,
+.q-select .q-field__control {
+  background-color: white !important;
+  
+}
+
 </style>
