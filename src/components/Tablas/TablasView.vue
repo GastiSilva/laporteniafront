@@ -1,31 +1,22 @@
 <template>
     <q-layout>
         <q-page-container>
-            <h4 class="q-ml-md">Modificación de tablas</h4>
-            <div class="q-pa-md">
-                <div class="row q-gutter-md items-center">
-                    <q-select v-model="selectedSection" :options="sections" label="Selecciona una sección" outlined
-                        dense class="col-4" />
-                </div>
+            <h5 class="q-mb-md q-mt-md">Modificación de tablas</h5>
 
+            <div class="row items-center q-mb-none">
+                <q-select v-model="selectedSection" :options="sections" label="Selecciona una sección" outlined
+                    dense rounded class="col-4"  style="background-color: white;" />
+            </div>
+            <div>
                 <div v-if="selectedSection != null" class="q-mt-md">
                     <div class="row q-gutter-md items-center">
-                        <!-- <q-select v-model="selectedProduct" use-input :options="filteredProducts"
-                            @filter="filterProducts" label="Seleccionar producto" option-label="Nombre"
-                            option-value="Id_Producto" :loading="loading" emit-value clearable /> -->
-                        <!-- <div v-for="option in filteredProductsOptions" :key="option.value">
-                            {{ option.label }}
-                        </div> -->
-
                         <q-select v-model="selectedProduct" :options="filteredProductsOptions" use-input
                             option-label="label" option-value="value" label="Productos" @filter="filterProducts"
-                            @update:model-value="onSelectUpdate" outlined dense clearable class="col-5" />
-                        <!-- <q-input v-model="selectedProduct" label="Producto" outlined dense class="col-5" /> -->
-
-
+                            @update:model-value="onSelectUpdate" outlined dense clearable class="col-5"
+                            style="background-color: white;" />
                         <q-input v-model.number="newProduct.cantidad" label="Cantidad" type="number" outlined dense
-                            class="col-2" />
-                        <q-input v-model="filters.fecha" label="Fecha" type="date" outlined dense class="col-4" />
+                            class="col-2"  style="background-color: white;" />
+                        <q-input v-model="filters.fecha" label="Fecha" type="date" outlined dense class="col-4"  style="background-color: white;"  />
                     </div>
                     <q-btn label="Agregar producto" color="primary" @click="addProduct" class="q-mt-md col-3"
                         borderer />
@@ -34,6 +25,13 @@
                     <div class="q-mt-md" style="max-width: 80%;">
                         <q-table :rows="filteredProducts" :columns="columns" row-key="id" flat bordered
                             class="my-table-product">
+                            <template v-slot:header="props">
+                                <q-tr :props="props">
+                                    <q-th v-for="col in props.cols" :key="col.name" :props="props" style="background-color: #0e1d75; color: white;">
+                                        {{ col.label }}
+                                    </q-th>
+                                </q-tr>
+                            </template>
                             <template v-slot:body-cell-actions="props">
                                 <q-td style="display: flex; justify-content: flex-end;">
                                     <q-btn flat color="negative" icon="fa-solid fa-trash-can"
@@ -87,7 +85,6 @@ export default {
         ];
 
         const addProduct = () => {
-
             if (selectedProduct.value && newProduct.value.cantidad > 0) {
                 const productFound = filteredProductsOptions.value.find((product) => {
                     return product.value === selectedProduct.value.value;

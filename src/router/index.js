@@ -6,11 +6,6 @@ import Admin from 'src/pages/AdminHome/AdminHome.vue'
 const routes = [
   {
     path: '/',
-    name: 'HomePage',
-    component: Home, // Ruta para la página de inicio
-  },
-  {
-    path: '/login',
     name: 'LoginPage',
     component: Login, // Ruta para el login
   },
