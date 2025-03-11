@@ -2,9 +2,7 @@ import { api } from 'boot/axios';
 
 export const TraerTablas = async () => {
     try {
-        const response = api.get('/tablasTodas');
-        console.log('response:', response);
-        
+        const response = api.get('/tablasTodas');        
         return response;
     } catch (error) {
         console.error('Error al traer tablas:', error);

@@ -1,6 +1,6 @@
 <template>
     <div class="exportar-datos-page">
-        <h5 class="q-mb-md q-mt-md">Exportar Datos</h5>
+        <h5 class="q-mb-md q-mt-md">Gestionar Datos</h5>
         <div class="row">
             <div class="col-3">
                 <q-card-section>
@@ -13,8 +13,6 @@
                     />
                 </q-card-section>
             </div>
-    
-            
             <q-card-actions align="right">
                 <q-btn label="Consultar" color="primary"  />
             </q-card-actions>
@@ -25,24 +23,22 @@
 
 <script>
 import { onMounted, ref } from 'vue';
-import { TraerTablas } from './service/ExportarDatosService';
+import { TraerTablas } from '../ExportarDatos/service/ExportarDatosService';
 
 export default {
-    name: 'ExportarDatosView',
+    name: 'GestionView',
     setup() {
         const selectedTable = ref(null);
-        const startDate = ref(null);
-        const endDate = ref(null);
         const tables = ref([]);
-
+        console.log("gestiion");
+        
         const exportData = () => {
-            // Lógica para exportar datos
-            console.log(`Exportando datos de ${selectedTable.value} desde ${startDate.value} hasta ${endDate.value}`);
         };
 
         const tablasImport = async () => {
             try {
                 const response = await TraerTablas();
+                console.log("respuesta: ", response);
                 tables.value = response.data.map(table => table.table_name);
             }
             catch (error){
@@ -55,8 +51,6 @@ export default {
 
         return {
             selectedTable,
-            startDate,
-            endDate,
             tables,
             exportData,
             tablasImport
@@ -65,9 +59,5 @@ export default {
 };
 </script>
 <style scoped>
-/* .exportar-datos-page {
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 20px;
-} */
+
 </style>
