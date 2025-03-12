@@ -12,25 +12,28 @@
             <q-tabs v-model="tab" vertical class="tabs-lateral text-white"
               :style="menuCollapsed ? 'width: 50px;' : 'width: 100%;'">
               <!-- Tabs con íconos y etiquetas -->
-                <q-tab name="remitos" icon="fa-solid fa-file-invoice-dollar" :label="!menuCollapsed ? 'Remitos' : ''"
+                <q-tab name="remitos" icon="fa-solid fa-file-invoice-dollar" :label="!menuCollapsed ? '' : ''"
                 class="tab-item">
                 <q-tooltip anchor="top middle" self="bottom middle">
                   Remitos
                 </q-tooltip>
                 </q-tab>
-                <q-tab name="movimientos" icon="fa-solid fa-table-list" :label="!menuCollapsed ? 'Movimientos' : ''"
+                <q-tab name="movimientos" icon="fa-solid fa-table-list" :label="!menuCollapsed ? '' : ''"
                 class="tab-item">
                 <q-tooltip anchor="top middle" self="bottom middle">
                   Movimientos
                 </q-tooltip>
                 </q-tab>
-                <q-tab name="datos" icon="fa-solid fa-print" :label="!menuCollapsed ? 'Datos' : ''" class="tab-item">
+                <q-tab name="datos" icon="fa-solid fa-print" :label="!menuCollapsed ? '' : ''" class="tab-item">
                 <q-tooltip anchor="top middle" self="bottom middle">
-                  Datos
+                  Exportar
                 </q-tooltip>
                 </q-tab>
-                <q-tab v-if="false" name="consultarCV" icon="fa-solid fa-folder" :label="!menuCollapsed ? 'Consultar CV' : ''"
+                <q-tab  name="gestion" icon="fa-solid fa-plus-minus" :label="!menuCollapsed ? '' : ''"
                 class="tab-item">
+                <q-tooltip anchor="top middle" self="bottom middle">
+                  Gestionar
+                </q-tooltip>
                 </q-tab>
             </q-tabs>
           </div>
@@ -51,13 +54,11 @@
             </q-tab-panel>
 
             <q-tab-panel name="datos">
-              <div class="text-h4 q-mb-md">Datos</div>
-              <p>Panel de análisis de datos y reportes.</p>
+              <ExportarDatosView />
             </q-tab-panel>
 
-            <q-tab-panel name="consultarCV">
-              <div class="text-h4 q-mb-md">Consultar CV</div>
-              <p>Herramienta para consultar currículums y perfiles.</p>
+            <q-tab-panel name="gestion">
+              <GestionView />
             </q-tab-panel>
           </q-tab-panels>
         </template>
@@ -70,11 +71,17 @@
 import { ref, watch } from 'vue';
 import RemitosView from '../../components/Remitos/RemitosVIew.vue';
 import TablasView from '../../components/Tablas/TablasView.vue';
+import ExportarDatosView from '../ExportarDatos/ExportarDatosView.vue';
+import GestionView from '../Gestion/GestionView.vue';
+
 
 export default {
   components: {
     RemitosView,
-    TablasView
+    TablasView,
+    ExportarDatosView,
+    GestionView,
+    
   },
   setup() {
     const splitterModel = ref(20); // Ancho inicial del panel izquierdo
