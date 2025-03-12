@@ -17,8 +17,31 @@
             
             <q-card-actions align="right">
                 <q-btn label="Consultar" color="primary"  />
+                <q-btn v-if="selectedTable" label="Exportar" color="primary" icon="download" @click="showExportModal = true" />
+                <q-dialog v-model="showExportModal">
+                    <q-card>
+                        <q-card-section>
+                            <div class="text-h6 q-mb-md">Seleccione el formato de exportación</div>
+                        </q-card-section>
+                        <q-separator />
+                        <q-card-section class="row justify-center">
+                            <q-btn class="q-ma-sm" label="PDF" color="primary" @click="exportData('pdf')" />
+                            <q-btn class="q-ma-sm" label="Excel (XLSX)" color="primary" @click="exportData('xlsx')" />
+                            <q-btn class="q-ma-sm" label="Word" color="primary" @click="exportData('word')" />
+                        </q-card-section>
+                        <q-separator />
+                        <q-card-actions align="right">
+                            <q-btn flat label="Cancelar" color="primary" v-close-popup />
+                        </q-card-actions>
+                    </q-card>
+                </q-dialog>
             </q-card-actions>
             
+        </div>
+        <div class="row" v-if="selectedTable">
+            <div class="col-12">
+                <ExportarTablasView :selected-table="selectedTable" />
+            </div>
         </div>
     </div>
 </template>
@@ -26,18 +49,19 @@
 <script>
 import { onMounted, ref } from 'vue';
 import { TraerTablas } from './service/ExportarDatosService';
+import ExportarTablasView from './components/ExportarTablasView.vue';
 
 export default {
     name: 'ExportarDatosView',
+    components: {
+        ExportarTablasView
+    },
     setup() {
         const selectedTable = ref(null);
-        const startDate = ref(null);
-        const endDate = ref(null);
         const tables = ref([]);
-
+        const showExportModal = ref(false);
         const exportData = () => {
-            // Lógica para exportar datos
-            console.log(`Exportando datos de ${selectedTable.value} desde ${startDate.value} hasta ${endDate.value}`);
+          
         };
 
         const tablasImport = async () => {
@@ -55,9 +79,8 @@ export default {
 
         return {
             selectedTable,
-            startDate,
-            endDate,
             tables,
+            showExportModal,
             exportData,
             tablasImport
         };

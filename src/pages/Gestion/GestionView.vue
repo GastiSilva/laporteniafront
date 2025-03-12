@@ -4,47 +4,57 @@
         <div class="row">
             <div class="col-3">
                 <q-card-section>
-                    <q-select
-                        v-model="selectedTable"
-                        :options="tables"
-                        label="Seleccione la tabla"
-                        outlined
-                        dense
-                    />
+                    <q-select v-model="selectedTable" :options="tables" label="Seleccione la tabla" outlined dense />
                 </q-card-section>
             </div>
             <q-card-actions align="right">
-                <q-btn label="Consultar" color="primary"  />
+                <q-btn label="Consultar" color="primary" />
+                <q-btn v-if="selectedTable" label="Agregar" color="primary" icon="add" />
+                <!-- <q-btn v-if="selectedTable" label="Eliminar" color="primary" icon="remove" /> -->
             </q-card-actions>
-            
+        </div>
+        <div class="row" v-if="selectedTable">
+            <div class="col-12">
+                <GestionTablasView :selected-table="selectedTable" />
+            </div>
         </div>
     </div>
+
 </template>
 
 <script>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { TraerTablas } from '../ExportarDatos/service/ExportarDatosService';
+import GestionTablasView from './components/GestionTablasView.vue';
 
 export default {
     name: 'GestionView',
+    components: {
+        GestionTablasView
+    },
     setup() {
-        const selectedTable = ref(null);
+        const selectedTable = ref("");
         const tables = ref([]);
-        console.log("gestiion");
-        
+        console.log("envioo", selectedTable);
+
         const exportData = () => {
         };
 
         const tablasImport = async () => {
             try {
                 const response = await TraerTablas();
-                console.log("respuesta: ", response);
                 tables.value = response.data.map(table => table.table_name);
             }
-            catch (error){
+            catch (error) {
                 console.log("Error: ", error);
             }
         };
+
+        watch(selectedTable, (newValue) => {
+            console.log("Nueva tabla seleccionada:", newValue);
+        });
+
+
         onMounted(() => {
             tablasImport();
         });
@@ -58,6 +68,4 @@ export default {
     }
 };
 </script>
-<style scoped>
-
-</style>
+<style scoped></style>
