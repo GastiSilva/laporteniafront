@@ -19,3 +19,4 @@ export const obtenerEstados = async () => {
     throw error.response ? error.response.data : error;
   }
 }
+

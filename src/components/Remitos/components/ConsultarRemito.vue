@@ -53,10 +53,7 @@ export default {
     },
     setup(props) {
         const remitos = ref([
-            { id: 1, numero: "R781", cliente: "Leonardo", fecha: "2024-11-16", total: "16500.00" },
-            { id: 2, numero: "R002", cliente: "Marcelo", fecha: "2024-11-15", total: "1500.00" },
-            { id: 3, numero: "R0122", cliente: "Moka", fecha: "2023-11-15", total: "5700.00" },
-        ]);
+ ]);
 
         const filter = ref("");
         const pagination = ref({ page: 1, rowsPerPage: 5 });

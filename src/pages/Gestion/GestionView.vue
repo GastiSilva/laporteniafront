@@ -10,7 +10,8 @@
             <q-card-actions align="right">
                 <q-btn label="Consultar" color="primary" />
                 <q-btn v-if="selectedTable" label="Agregar" color="primary" icon="add" />
-                <!-- <q-btn v-if="selectedTable" label="Eliminar" color="primary" icon="remove" /> -->
+                <q-btn v-if="selectedTable" label="Eliminar" color="primary" icon="remove" />
+                <q-btn v-if="selectedTable" label="Guardar" color="primary" icon="save" />
             </q-card-actions>
         </div>
         <div class="row" v-if="selectedTable">
