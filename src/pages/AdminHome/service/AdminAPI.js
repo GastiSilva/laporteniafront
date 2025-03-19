@@ -1,9 +1,14 @@
 import { api } from 'boot/axios';
 
-export const RemitoPDFAPI = async () => {
+export const RemitoPDFAPI = async (id) => {
+  if (!id) {
+    console.error('ID no definido al generar PDF.');
+    return;
+  }
   try {
-    const response = await api.post('/generarRemito', null, { // Usa `null` si no hay datos en el cuerpo
-      responseType: 'blob', // Mover esto aquí
+    console.log(`Llamando a la API con ID: ${id}`); 
+    const response = await api.get(`/generarRemito/${id}`,  { 
+      responseType: 'blob', 
     });
 
     // Crear una URL para el archivo PDF

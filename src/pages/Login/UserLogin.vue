@@ -58,6 +58,10 @@ export default {
           } else {
             errorMessage.value = 'Usuario o contraseña incorrectos';
           }
+          console.log("usuario", username.value);
+          console.log("contraseña", password.value);
+          
+          
         })
         .catch((error) => {
           errorMessage.value = 'Usuario o contraseña incorrectos';

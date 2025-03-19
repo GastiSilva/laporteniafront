@@ -25,62 +25,66 @@
         <!-- Vista de Generar Remito -->
         <div v-if="currentView === 'generar'">
           <h4 class="titulo-rem">Generar Remito</h4>
-            <div class="row q-col-gutter-md">
+          <div class="row q-col-gutter-md">
             <div class="col-5">
               <q-select v-model="fecha" label="Fecha (Año, Mes, Día)" outlined class="q-ma-xs mi-q-select"
-              :error="!fecha && errorIntento" dense>
-              <template v-slot:append>
-                <q-icon name="event" />
-              </template>
-              <q-popup-proxy cover>
-                <q-date v-model="fecha" mask="YYYY-MM-DD" format="DD/MM/YYYY" default-view="Calendar" />
-              </q-popup-proxy>
+                :error="!fecha && errorIntento" dense>
+                <template v-slot:append>
+                  <q-icon name="event" />
+                </template>
+                <q-popup-proxy cover>
+                  <q-date v-model="fecha" mask="YYYY-MM-DD" format="DD/MM/YYYY" default-view="Calendar" />
+                </q-popup-proxy>
               </q-select>
             </div>
-            </div>
+          </div>
 
-            <div class="row q-col-gutter-md">
+          <div class="row q-col-gutter-md">
             <div class="col-6">
               <q-input v-model="senior" label="Señor" outlined class="q-ma-xs" :error="!senior && errorIntento" dense />
             </div>
             <div class="col-6">
-              <q-input v-model="domicilio" label="Domicilio" outlined class="q-ma-xs" :error="!domicilio && errorIntento" dense />
+              <q-input v-model="domicilio" label="Domicilio" outlined class="q-ma-xs"
+                :error="!domicilio && errorIntento" dense />
             </div>
-            </div>
+          </div>
 
-            <div class="row q-col-gutter-md">
+          <div class="row q-col-gutter-md">
+            <div class="col-10 q-mt-xs">
+              <q-select v-model="selectedProduct" :options="filteredProductsOptions" use-input option-label="label"
+                option-value="value" label="Productos" @filter="filterProducts" @update:model-value="onSelectUpdate"
+                outlined dense clearable class="col-5" style="background-color: white;" />
+            </div>
             <div class="col-2">
-              <q-input v-model="codigo" label="Código" outlined class="q-ma-xs" :error="!codigo && errorIntento" dense />
+              <q-input v-model="cantidad" label="Cantidad" outlined class="q-ma-xs " :error="!cantidad && errorIntento"
+                dense type="number" />
             </div>
-            <div class="col-10">
-              <q-input v-model="producto" label="Producto" outlined class="q-ma-xs" :error="!producto && errorIntento" dense />
-            </div>
-            </div>
+          </div>
 
-            <div class="row q-col-gutter-md">
-            <div class="col-2">
-              <q-input v-model="cantidad" label="Cantidad" type="text" outlined class="q-ma-xs" :error="!cantidad && errorIntento" dense />
-            </div>
+          <div class="row q-col-gutter-md">
             <div class="col-5">
-              <q-input v-model="precioUnitario" label="Precio Unitario" type="text" outlined class="q-ma-xs" :error="!precioUnitario && errorIntento" dense />
+              <q-input v-model="precioUnitario" label="Precio Unitario" type="text" outlined class="q-ma-xs"
+                :error="!precioUnitario && errorIntento" dense />
             </div>
             <div class="col-5">
               <!-- Subtotal calculado automáticamente -->
               <q-input v-model="subtotal" label="Sub Total" type="number" outlined class="q-ma-xs" readonly dense />
             </div>
-            </div>
-
-            <div class="row q-col-gutter-md">
             <div class="col-2">
               <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined class="q-ma-xs" dense
-              clearable :error="!selectedEstado && errorIntento" />
+                clearable :error="!selectedEstado && errorIntento" />
             </div>
-            </div>
+          </div>
+
+
+
 
           <!-- Botón para agregar el producto a la tabla -->
           <q-btn @click="agregarProducto" label="Agregar Producto" color="primary" class="q-ma-xs" />
-          <q-btn @click="downloadPDF" label="Descargar Remito PDF" color="primary" class="q-ma-xs" />
-          <q-btn flat label="Volver" text-color="white" class="q-ma-md" @click="setCurrentView('main')" rounded style="background-color:#0e1d75;" />
+          <!-- <q-btn @click="downloadPDF" label="Descargar Remito PDF" color="primary" class="q-ma-xs" /> -->
+          <q-btn @click="enviarRemito" label="Descargar Remito PDF" color="primary" class="q-ma-xs" />
+          <q-btn flat label="Volver" text-color="white" class="q-ma-md" @click="setCurrentView('main')" rounded
+            style="background-color:#0e1d75;" />
 
           <!-- Mostrar tabla de productos -->
           <q-table :rows="productos" :columns="columns" row-key="codigo">
@@ -117,9 +121,11 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import ConsultarRemito from './components/ConsultarRemito.vue';
 import { RemitoPDFAPI } from 'src/pages/AdminHome/service/AdminAPI';
+import { crearRemito, obtenerEstados } from './service/RemitosService';
+import { fetchProducts } from "../Tablas/service/AddDatosAPI";
 
 export default {
   components: {
@@ -127,25 +133,29 @@ export default {
   },
   setup() {
     const currentView = ref('main');
-    const estadoOptions = ['Pagado', 'Adeudado', 'Pendiente'];
-
     // Campos principales
     const fecha = ref('');
     const senior = ref('');
     const domicilio = ref('');
-    const codigo = ref('');
-    const producto = ref('');
     const cantidad = ref(null);
     const precioUnitario = ref('');
     const selectedEstado = ref(null);
-
-    // Campo subtotal calculado automáticamente
+    const estadoOptions = ref([]);
     const subtotal = computed(() => {
-      console.log('Cantidad:', cantidad.value, 'Precio Unitario:', precioUnitario.value);
       return cantidad.value && precioUnitario.value
         ? parseFloat(cantidad.value) * parseFloat(precioUnitario.value)
-        : 0; // Cambié el valor por defecto a 0 en lugar de ''
+        : 0;
     });
+
+    const selectedProduct = ref(null);
+    const filteredProductsOptions = ref([]);
+    const allProducts = ref([]);
+    const loading = ref(true);
+
+    const id_producto = ref('');
+    const codigo = ref('');
+    const producto = ref('');
+    // const products = ref([]);
 
     const errorMessage = ref('');
     const errorIntento = ref(false);
@@ -154,10 +164,10 @@ export default {
     const columns = ref([
       { name: 'codigo', label: 'Código', align: 'left', field: row => row.codigo },
       { name: 'producto', label: 'Producto', align: 'left', field: row => row.producto },
-      { name: 'cantidad', label: 'Cantidad', align: 'left', field: row => row.cantidad },
-      { name: 'precioUnitario', label: 'Precio Unitario', align: 'left', field: row => row.precioUnitario },
+      { name: 'cantidad', label: 'Cantidad', align: 'center', field: row => row.cantidad },
+      { name: 'precioUnitario', label: 'Precio Unitario', align: 'center', field: row => row.precioUnitario },
       { name: 'subtotal', label: 'Sub Total', align: 'left', field: row => row.subtotal },
-      { name: 'actions', label: 'Acciones', align: 'right' },
+      { name: 'actions', label: 'Acciones', align: 'center' },
     ]);
 
     const setCurrentView = (view) => {
@@ -173,6 +183,19 @@ export default {
       return true;
     };
 
+    const cargarEstados = async () => {
+      try {
+        const estados = await obtenerEstados();
+        estadoOptions.value = estados.map(estado => ({
+          label: estado.Estado,
+          value: estado.Id_Estado,
+        }));
+      } catch (error) {
+        console.error('Error al cargar los estados:', error);
+        errorMessage.value = 'Error al cargar los estados.';
+      }
+    };
+
     const agregarProducto = () => {
       if (validarCampos([codigo.value, producto.value, cantidad.value, precioUnitario.value])) {
         productos.value.push({
@@ -184,36 +207,145 @@ export default {
         });
 
         // Limpiar campos
-        codigo.value = '';
-        producto.value = '';
+        selectedProduct.value = null;
         cantidad.value = null;
         precioUnitario.value = '';
         errorMessage.value = '';
       }
     };
 
-    const downloadPDF = async () => {
-      if (validarCampos([senior.value, domicilio.value, fecha.value])) {
-        try {
-          await RemitoPDFAPI();
-        } catch (error) {
-          errorMessage.value = 'Error al descargar el PDF: ' + error.message;
-        }
+    const downloadPDF = async (id) => {
+      try {
+        await RemitoPDFAPI(id);
+      } catch (error) {
+        errorMessage.value = 'Error al descargar el PDF: ' + error.message;
       }
+
     };
+
+    const enviarRemito = async () => {
+      if (!validarCampos([senior.value, domicilio.value, fecha.value]) || productos.value.length === 0) {
+        errorMessage.value = 'Por favor, complete todos los campos y agregue al menos un producto.';
+        return;
+      }
+
+        const productosTransformados = productos.value.map(prod => {
+        const productoEncontrado = allProducts.value.find(p => p.Codigo === prod.codigo);
+        return {
+          Id_Producto: productoEncontrado ? productoEncontrado.Id_Producto : null, 
+          Cantidad: prod.cantidad,
+          PrecioUnit: prod.precioUnitario,
+          PrecioTotal: prod.precioUnitario * prod.cantidad
+        };
+      });
+
+      const remitoData = {
+        Senior: senior.value,
+        Domicilio: domicilio.value,
+        Fecha: fecha.value,
+        Id_Estado: selectedEstado.value.value,
+        Productos: productosTransformados
+      };
+
+      console.log('Datos del remito:', remitoData);
+
+      try {
+        const response = await crearRemito(remitoData);
+        console.log('Remito creado con éxito:', response);
+        alert('Remito creado con éxito');
+        
+        senior.value = '';
+        domicilio.value = '';
+        fecha.value = '';
+        productos.value = [];
+        
+        const id_remito = response.remito?.Id_Remito;
+        await downloadPDF(id_remito);
+
+      } catch (error) {
+        console.error('Error al crear el remito:', error);
+        errorMessage.value = 'Error al crear el remito.';
+      }
+  };
+
 
     const deleteProducto = (codigo) => {
       productos.value = productos.value.filter(producto => producto.codigo !== codigo);
     };
 
+    function filterProducts(val, update) {
+      update(() => {
+        if (!val) {
+          filteredProductsOptions.value = allProducts.value.map(function (product) {
+            return {
+              label: product.Nombre,
+              value: product.Id_Producto
+            };
+          });
+          return;
+        }
+        const search = val.toLowerCase();
+        filteredProductsOptions.value = allProducts.value
+          .filter(function (product) {
+            return product.Nombre.toLowerCase().includes(search);
+          })
+          .map(function (product) {
+            return {
+              label: product.Nombre,
+              value: product.Id_Producto
+            };
+          });
+      });
+    }
+
+    const cargarProductos = async () => {
+      try {
+        loading.value = true;
+        const productos = await fetchProducts();
+        allProducts.value = productos;
+        
+        filteredProductsOptions.value = productos.map((product) => ({
+          label: product.Nombre,
+          value: product.Id_Producto,
+        }));
+
+      } catch (error) {
+        console.error("Error al cargar productos:", error);
+        alert("No se pudo cargar la lista de productos.");
+      } finally {
+        loading.value = false;
+      }
+    };
+
+
+    watch(selectedProduct, (newVal) => {
+      if (newVal) {
+        const selected = allProducts.value.find(product => product.Nombre === newVal.label);
+        if (selected) {
+          codigo.value = selected.Codigo;
+          producto.value = selected.Nombre;
+
+          id_producto.value = selected.Id_Producto
+        }
+      }
+    });
+
+
+    onMounted(() => {
+      cargarEstados();
+      cargarProductos();
+    });
+
     return {
       currentView,
       setCurrentView,
       estadoOptions,
+      cargarEstados,
       senior,
       domicilio,
       codigo,
       producto,
+      id_producto,
       cantidad,
       fecha,
       precioUnitario,
@@ -226,6 +358,11 @@ export default {
       columns,
       agregarProducto,
       deleteProducto,
+      enviarRemito,
+      filterProducts,
+      selectedProduct,
+      cargarProductos,
+      filteredProductsOptions
     };
   },
 };
@@ -240,7 +377,6 @@ export default {
 .q-input .q-field__control,
 .q-select .q-field__control {
   background-color: white !important;
-  
-}
 
+}
 </style>

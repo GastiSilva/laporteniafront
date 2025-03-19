@@ -1,8 +1,8 @@
 <template>
     <div class="exportar-datos-page">
-        <h5 class="q-mb-md q-mt-md">Exportar Datos</h5>
+        <h5 class="q-mb-xs q-mt-md">Exportar Datos</h5>
         <div class="row">
-            <div class="col-3">
+            <div class="col-3 ">
                 <q-card-section>
                     <q-select
                         v-model="selectedTable"
@@ -10,6 +10,7 @@
                         label="Seleccione la tabla"
                         outlined
                         dense
+                        rounded
                     />
                 </q-card-section>
             </div>

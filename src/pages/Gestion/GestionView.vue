@@ -4,7 +4,7 @@
         <div class="row">
             <div class="col-3">
                 <q-card-section>
-                    <q-select v-model="selectedTable" :options="tables" label="Seleccione la tabla" outlined dense />
+                    <q-select v-model="selectedTable" :options="tables" label="Seleccione la tabla" outlined dense rounded />
                 </q-card-section>
             </div>
             <q-card-actions align="right">
