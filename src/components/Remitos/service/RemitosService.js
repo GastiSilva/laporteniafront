@@ -12,10 +12,11 @@ export const crearRemito = async (remitoData) => {
 
 export const obtenerEstados = async () => {
   try {
-    const response = await api.get(`/estados`);
+    const response = await api.get(`/estadosTodos`);
     return response.data;
     
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
 }
+

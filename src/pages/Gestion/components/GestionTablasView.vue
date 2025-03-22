@@ -8,7 +8,14 @@
             </thead>
             <tbody>
                 <tr v-for="(row, rowIndex) in rows" :key="rowIndex">
-                    <td v-for="(column, colIndex) in columns" :key="colIndex">{{ row[column] }}</td>
+                    <td v-for="(column, colIndex) in columns" :key="colIndex">
+                        <div v-if="esEditable(rowIndex, column)">
+                            <input v-model="editValue" @blur="guardarEdit(rowIndex, column)" @keyup.enter="guardarEdit(rowIndex, column)" />
+                        </div>
+                        <div v-else @dblclick="permitirEditar(rowIndex, column)">
+                            {{ row[column] }}
+                        </div>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -30,31 +37,49 @@ export default {
     setup(props) {
         const columns = ref([]);
         const rows = ref([]);
+        const filaEditada = ref(null);
+        const columnaEditada = ref(null);
+        const editValue = ref('');
 
         console.log("props: ", props.selectedTable);
         
         const obtenerDatosTablas = async () => {
             try {
-            const response = await getTableData(props.selectedTable);
-            console.log("response: ", response);
-            
-            const data = response.data;
-            console.log("data: ", data);
-            
-            if (data.length > 0) {
-                //agregara  futuro que no traiga las que comienzen con id && !column.startsWith('id')&& !column.startsWith('Id') pero se va a precisar que aquellas que tengan una relacion traigan el dato de la misma
-                columns.value = Object.keys(data[0]).filter(column => column !== 'createdAt' && column !== 'updatedAt' );
-                rows.value = data.map(row => {
-                const filteredRow = {};
-                columns.value.forEach(column => {
-                    filteredRow[column] = row[column];
-                });
-                return filteredRow;
-                });
-            }
+                const response = await getTableData(props.selectedTable);
+                console.log("response: ", response);
+                
+                const data = response.data;
+                console.log("data: ", data);
+                
+                if (data.length > 0) {
+                    columns.value = Object.keys(data[0]).filter(column => column !== 'createdAt' && column !== 'updatedAt' );
+                    rows.value = data.map(row => {
+                        const filteredRow = {};
+                        columns.value.forEach(column => {
+                            filteredRow[column] = row[column];
+                        });
+                        return filteredRow;
+                    });
+                }
             } catch (error) {
-            console.error('Error fetching data:', error);
+                console.error('Error fetching data:', error);
             }
+        };
+
+        const esEditable = (rowIndex, column) => {
+            return filaEditada.value === rowIndex && columnaEditada.value === column;
+        };
+
+        const permitirEditar = (rowIndex, column) => {
+            filaEditada.value = rowIndex;
+            columnaEditada.value = column;
+            editValue.value = rows.value[rowIndex][column];
+        };
+
+        const guardarEdit = (rowIndex, column) => {
+            rows.value[rowIndex][column] = editValue.value;
+            filaEditada.value = null;
+            columnaEditada.value = null;
         };
 
         watch(() => props.selectedTable, () => {
@@ -68,7 +93,11 @@ export default {
         return {
             columns,
             rows,
-            getTableData
+            getTableData,
+            esEditable,
+            permitirEditar,
+            guardarEdit,
+            editValue
         };
     }
 };

@@ -10,4 +10,17 @@ export const TraerTablas = async () => {
     }
 };
 
-export default TraerTablas;
+export const TraerTablasExport = async () => {
+    try {
+        const response = api.get('/tablasExcell');        
+        return response;
+    } catch (error) {
+        console.error('Error al traer tablas:', error);
+        throw error;
+    }
+};
+
+export default {
+    TraerTablas,
+    TraerTablasExport
+};

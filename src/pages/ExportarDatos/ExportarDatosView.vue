@@ -49,7 +49,7 @@
 
 <script>
 import { onMounted, ref } from 'vue';
-import { TraerTablas } from './service/ExportarDatosService';
+import { TraerTablasExport} from './service/ExportarDatosService';
 import ExportarTablasView from './components/ExportarTablasView.vue';
 
 export default {
@@ -67,7 +67,7 @@ export default {
 
         const tablasImport = async () => {
             try {
-                const response = await TraerTablas();
+                const response = await TraerTablasExport();
                 tables.value = response.data.map(table => table.table_name);
             }
             catch (error){
