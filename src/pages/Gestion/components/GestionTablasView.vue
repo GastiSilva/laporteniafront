@@ -37,8 +37,8 @@ export default {
     setup(props) {
         const columns = ref([]);
         const rows = ref([]);
-        const editingRow = ref(null);
-        const editingColumn = ref(null);
+        const filaEditada = ref(null);
+        const columnaEditada = ref(null);
         const editValue = ref('');
 
         console.log("props: ", props.selectedTable);
@@ -67,19 +67,19 @@ export default {
         };
 
         const esEditable = (rowIndex, column) => {
-            return editingRow.value === rowIndex && editingColumn.value === column;
+            return filaEditada.value === rowIndex && columnaEditada.value === column;
         };
 
         const permitirEditar = (rowIndex, column) => {
-            editingRow.value = rowIndex;
-            editingColumn.value = column;
+            filaEditada.value = rowIndex;
+            columnaEditada.value = column;
             editValue.value = rows.value[rowIndex][column];
         };
 
         const guardarEdit = (rowIndex, column) => {
             rows.value[rowIndex][column] = editValue.value;
-            editingRow.value = null;
-            editingColumn.value = null;
+            filaEditada.value = null;
+            columnaEditada.value = null;
         };
 
         watch(() => props.selectedTable, () => {

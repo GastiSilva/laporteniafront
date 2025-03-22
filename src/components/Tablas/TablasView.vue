@@ -39,7 +39,7 @@
                                 </q-td>
                             </template>
                         </q-table>
-                        <q-btn label="Guardar" color="green" @click="SendDatos" class="q-mt-md col-4" />
+                        <q-btn label="Guardar" color="green" @click="handleGuardar" class="q-mt-md col-4" />
                     </div>
                 </div>
             </div>
@@ -49,7 +49,7 @@
 
 <script>
 import { ref, computed, onMounted } from "vue";
-import { SaveProduccion, fetchProducts } from "./service/AddDatosAPI";
+import { guardarEnProduccion, fetchProducts, guardarEnDevolucion } from "./service/AddDatosAPI";
 
 export default {
     setup() {
@@ -97,8 +97,6 @@ export default {
                         cantidad: newProduct.value.cantidad,
                         fecha: filters.value.fecha || new Date().toISOString().slice(0, 10),
                     });
-
-                    // Limpieza de campos
                     selectedProduct.value = null;
                     newProduct.value.cantidad = null;
                     filters.value.fecha = "";
@@ -111,9 +109,6 @@ export default {
             }
         };
 
-
-
-
         const removeProduct = (id) => {
             addedProducts.value = addedProducts.value.filter(
                 (product) => product.id !== id
@@ -123,7 +118,6 @@ export default {
         const filteredProducts = computed(() => {
             return addedProducts.value;
         });
-
 
         function filterProducts(val, update) {
             update(() => {
@@ -151,7 +145,6 @@ export default {
             });
         }
 
-
         const loadProducts = async () => {
             try {
                 loading.value = true;
@@ -169,8 +162,31 @@ export default {
             }
         };
 
+        
 
-        const SendDatos = async () => {
+        const EnviarDatosProduccion = async () => {
+            if (addedProducts.value.length === 0) {
+                alert("No hay productos para enviar.");
+                return;
+            }
+            try {
+                const productos = addedProducts.value.map(
+                    ({ producto, cantidad, fecha }) => ({
+                        nombre: producto,
+                        cantidad,
+                        fecha,
+                    })
+                );
+                const response = await guardarEnProduccion(productos);
+                alert("Datos enviados con éxito: " + response.message);
+                addedProducts.value = [];
+            } catch (error) {
+                console.error("Error al enviar los datos:", error);
+                alert(error.message || "Error al enviar los datos.");
+            }
+        };
+
+        const EnviarDatosDevolucion = async () => {
             if (addedProducts.value.length === 0) {
                 alert("No hay productos para enviar.");
                 return;
@@ -184,7 +200,7 @@ export default {
                     })
                 );
                 console.log("Productos a enviar:", productos);
-                const response = await SaveProduccion(productos);
+                const response = await guardarEnDevolucion(productos);
                 alert("Datos enviados con éxito: " + response.message);
                 addedProducts.value = [];
             } catch (error) {
@@ -192,6 +208,14 @@ export default {
                 alert(error.message || "Error al enviar los datos.");
             }
         };
+
+        const handleGuardar = () =>{
+            if(selectedSection.value === "Producción"){
+                EnviarDatosProduccion();
+            }else if(selectedSection.value === "Devolución"){
+                EnviarDatosDevolucion();
+            }
+        }
 
         onMounted(() => {
             loadProducts();
@@ -214,7 +238,9 @@ export default {
             products,
             loading,
             onSelectUpdate,
-            SendDatos,
+            EnviarDatosProduccion,
+            EnviarDatosDevolucion,
+            handleGuardar
         };
     },
 };
