@@ -1,7 +1,7 @@
 <template>
     <q-layout>
         <q-page-container>
-            <h5 class="q-mb-xs q-mt-xs">Modificación de tablas</h5>
+            <h5 class="q-mb-md q-mt-xs">Flujo de stock</h5>
 
             <div class="row items-center q-mb-none">
                 <q-select v-model="selectedSection" :options="sections" label="Selecciona una sección" outlined
@@ -49,7 +49,7 @@
 
 <script>
 import { ref, computed, onMounted } from "vue";
-import { guardarEnProduccion, fetchProducts, guardarEnDevolucion } from "./service/AddDatosAPI";
+import { guardarEnProduccion, fetchProducts, guardarEnDevolucion, guardarEnVentas } from "./service/AddDatosAPI";
 
 export default {
     setup() {
@@ -65,7 +65,7 @@ export default {
         const allProducts = ref([]);
 
         const products = ref([]); // Todos los productos cargados del backend
-        const loading = ref(true); // Estado de carga
+        const loading = ref(true); 
         const selectedSection = ref(null);
         const filters = ref({ fecha: "" });
         const newProduct = ref({ producto: "", cantidad: null, fecha: "" });
@@ -160,9 +160,7 @@ export default {
             } finally {
                 loading.value = false;
             }
-        };
-
-        
+        };      
 
         const EnviarDatosProduccion = async () => {
             if (addedProducts.value.length === 0) {
@@ -201,6 +199,30 @@ export default {
                 );
                 console.log("Productos a enviar:", productos);
                 const response = await guardarEnDevolucion(productos);
+                alert("Datos enviados con éxito");
+                addedProducts.value = [];
+            } catch (error) {
+                console.error("Error al enviar los datos:", error);
+                alert(error.message || "Error al enviar los datos.");
+            }
+        };
+
+
+        const EnviarDatosVentas = async () => {
+            if (addedProducts.value.length === 0) {
+                alert("No hay productos para enviar.");
+                return;
+            }
+            try {
+                const productos = addedProducts.value.map(
+                    ({ producto, cantidad, fecha }) => ({
+                        nombre: producto,
+                        cantidad,
+                        fecha,
+                    })
+                );
+                console.log("Productos a enviar:", productos);
+                const response = await guardarEnVentas(productos);
                 alert("Datos enviados con éxito: " + response.message);
                 addedProducts.value = [];
             } catch (error) {
@@ -209,11 +231,15 @@ export default {
             }
         };
 
+
+
         const handleGuardar = () =>{
             if(selectedSection.value === "Producción"){
                 EnviarDatosProduccion();
             }else if(selectedSection.value === "Devolución"){
                 EnviarDatosDevolucion();
+            }else if(selectedSection.value === "Venta de Mercaderías"){
+                EnviarDatosVentas();
             }
         }
 
@@ -240,6 +266,7 @@ export default {
             onSelectUpdate,
             EnviarDatosProduccion,
             EnviarDatosDevolucion,
+            EnviarDatosVentas,
             handleGuardar
         };
     },

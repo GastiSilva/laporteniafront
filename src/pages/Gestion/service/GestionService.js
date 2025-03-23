@@ -10,4 +10,25 @@ export const getTableData = async (tableName) => {
     }
 };
 
-export default getTableData;
+export const deleteProduccion = async (id, cantidad) => {
+    try {
+        const response = await api.delete(`/EliminarDeProduccion/${id}/${cantidad}`);
+        return response;
+    } catch (error) {
+        console.error(`No se pudo borrar el producto con  ${id}:`, error);
+        throw error;
+    }
+}
+
+export const deleteVentas = async (id, cantidad) => {
+    try {
+        const response = await api.delete(`/eliminarDeVentaMercaderia/${id}/${cantidad}`);
+        return response;
+    } catch (error) {
+        console.error(`No se pudo borrar el producto con  ${id}:`, error);
+        throw error;
+    }
+}
+
+
+export default {getTableData , deleteProduccion, deleteVentas};
