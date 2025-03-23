@@ -36,3 +36,16 @@ export const guardarEnDevolucion = async (productos) => {
         throw new Error("Error al guardar los datos en Devolución.");
     }
 };
+
+export const guardarEnVentas = async (productos) => {
+    if (!Array.isArray(productos) || productos.length === 0) {
+        throw new Error("No hay productos para enviar.");
+    }
+    try {   
+        const response = await api.post('/guardarVentaMercaderia', { productos });
+        return response.data;
+    } catch (error) {
+        console.error("Error al enviar datos Devolución:", error);
+        throw new Error("Error al guardar los datos en Devolución.");
+    }
+};
