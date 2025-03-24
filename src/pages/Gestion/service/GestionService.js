@@ -38,6 +38,32 @@ export const addProveedor = async ({ Nombre, Cuit }) => {
     }
 };
 
+export const addVendedor = async ({ Nombre, Cuit }) => {
+    try {
+        const response = await api.post('/registerVendedor', {
+            Nombre,
+            Cuit
+        });
+        return response;
+    } catch (error) {
+        console.error('Error al agregar usuario:', error);
+        throw error;
+    }
+};
+
+export const addCliente = async ({ Nombre, Cuil }) => {
+    try {
+        const response = await api.post('/registerCliente', {
+            Nombre,
+            Cuil
+        });
+        return response;
+    } catch (error) {
+        console.error('Error al agregar usuario:', error);
+        throw error;
+    }
+};
+
 
 
 
@@ -63,4 +89,4 @@ export const deleteVentas = async (id, cantidad) => {
 }
 
 
-export default {getTableData , deleteProduccion, deleteVentas, addUsuario, addProveedor};
+export default {getTableData , deleteProduccion, deleteVentas, addUsuario, addProveedor, addVendedor, addCliente};

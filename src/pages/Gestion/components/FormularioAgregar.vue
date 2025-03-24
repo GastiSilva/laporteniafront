@@ -13,7 +13,7 @@
 
 <script>
 import { ref, watch, computed } from 'vue';
-import { addUsuario, addProveedor } from '../service/GestionService';
+import { addUsuario, addProveedor, addVendedor, addCliente } from '../service/GestionService';
 
 export default {
   props: {
@@ -50,6 +50,10 @@ export default {
                 agregarUsuario(formData.value);
             }else if(props.selectedTable === 'Proveedor') {
                 agregarProveedor(formData.value);
+            }else if(props.selectedTable === 'Vendedores') {
+                agregarVendedor(formData.value);
+            }else if(props.selectedTable === 'Clientes') {
+                agregarCliente(formData.value);
             }
         };
 
@@ -69,7 +73,29 @@ export default {
       console.log('formData:', formData);
       try {
         await addProveedor(formData);
-        alert('Usuario agregado correctamente');
+        alert('Proveedor agregado correctamente');
+      } catch (error) {
+        console.error('Error al agregar usuario:', error);
+        alert('Error al agregar usuario');
+      }
+    };
+
+    const agregarCliente = async (formData) => {
+      console.log('formData:', formData);
+      try {
+        await addCliente(formData);
+        alert('Cliente agregado correctamente');
+      } catch (error) {
+        console.error('Error al agregar usuario:', error);
+        alert('Error al agregar usuario');
+      }
+    };
+
+    const agregarVendedor = async (formData) => {
+      console.log('formData:', formData);
+      try {
+        await addVendedor(formData);
+        alert('Vendedor agregado correctamente');
       } catch (error) {
         console.error('Error al agregar usuario:', error);
         alert('Error al agregar usuario');
@@ -83,7 +109,8 @@ export default {
       handleSubmit,
       handleAgregar,
       agregarUsuario,
-      agregarProveedor
+      agregarProveedor,
+      agregarCliente
     };
   },
 };
