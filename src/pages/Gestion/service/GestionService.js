@@ -10,6 +10,38 @@ export const getTableData = async (tableName) => {
     }
 };
 
+//METODOS AGREGAR
+export const addUsuario = async ({ Usuario, Contrasenia, Mail }) => {
+    try {
+        const response = await api.post('/register', {
+            Usuario,
+            Contrasenia,
+            Mail
+        });
+        return response;
+    } catch (error) {
+        console.error('Error al agregar usuario:', error);
+        throw error;
+    }
+};
+
+export const addProveedor = async ({ Nombre, Cuit }) => {
+    try {
+        const response = await api.post('/registerProveedor', {
+            Nombre,
+            Cuit
+        });
+        return response;
+    } catch (error) {
+        console.error('Error al agregar usuario:', error);
+        throw error;
+    }
+};
+
+
+
+
+//METODOS ELIMINAR 
 export const deleteProduccion = async (id, cantidad) => {
     try {
         const response = await api.delete(`/EliminarDeProduccion/${id}/${cantidad}`);
@@ -31,4 +63,4 @@ export const deleteVentas = async (id, cantidad) => {
 }
 
 
-export default {getTableData , deleteProduccion, deleteVentas};
+export default {getTableData , deleteProduccion, deleteVentas, addUsuario, addProveedor};
