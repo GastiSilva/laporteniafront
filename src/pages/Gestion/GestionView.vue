@@ -37,7 +37,7 @@ export default {
         const tablasImport = async () => {
             try {
                 const response = await TraerTablas();
-                tables.value = response.data.map(table => table.table_name);
+                tables.value = response.data.map(table => table.table_name).sort();
             }
             catch (error) {
                 console.log("Error: ", error);
