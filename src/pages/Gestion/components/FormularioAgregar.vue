@@ -1,6 +1,6 @@
 <template>
   <div class="form-container">
-    <form @submit.prevent="handleSubmit" class="form-card">
+    <form @submit.prevent="handleSubmit" :class="['form-card', filteredColumns.length > 4 ? 'two-column' : '']">
       <h2 class="form-title">Agregar Datos</h2>
       <div v-for="column in filteredColumns" :key="column" class="form-group">
         <label :for="column" class="form-label">{{ column }}</label>
@@ -26,7 +26,7 @@ export default {
       required: true,
     },
   },
-  emits: ['submit'],
+  emits: ['submit','agregar-completado' ],
   setup(props, { emit }) {
     //Inicializacion del forms
     const formData = ref({});
@@ -46,16 +46,22 @@ export default {
     };
 
     const handleAgregar = () => {
-            if (props.selectedTable === 'Usuarios') {
-                agregarUsuario(formData.value);
-            }else if(props.selectedTable === 'Proveedor') {
-                agregarProveedor(formData.value);
-            }else if(props.selectedTable === 'Vendedores') {
-                agregarVendedor(formData.value);
-            }else if(props.selectedTable === 'Clientes') {
-                agregarCliente(formData.value);
-            }
-        };
+      try{  
+        if (props.selectedTable === 'Usuarios') {
+            agregarUsuario(formData.value);
+        }else if(props.selectedTable === 'Proveedor') {
+            agregarProveedor(formData.value);
+        }else if(props.selectedTable === 'Vendedores') {
+            agregarVendedor(formData.value);
+        }else if(props.selectedTable === 'Clientes') {
+            agregarCliente(formData.value);
+        }
+        emit('agregar-completado');
+      }catch (error) {
+        console.error('Error al agregar:', error);
+        alert('Error al agregar');
+      }
+    };
 
     //completado de los distonos fornms
     const agregarUsuario = async (formData) => {
@@ -118,7 +124,6 @@ export default {
 
 
 
-
 <style scoped>
 .form-container {
   display: flex;
@@ -136,10 +141,18 @@ export default {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;
+  max-width: 600px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+
+.two-column {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .form-title {
+  grid-column: span 2;
   margin-bottom: 15px;
   font-size: 1.5rem;
   font-weight: bold;
@@ -147,7 +160,6 @@ export default {
 }
 
 .form-group {
-  margin-bottom: 15px;
   display: flex;
   flex-direction: column;
 }
@@ -179,6 +191,7 @@ export default {
   font-size: 1.2rem;
   cursor: pointer;
   width: 100%;
+  grid-column: span 2;
 }
 
 .form-button:hover {

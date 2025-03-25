@@ -27,12 +27,12 @@
             </tbody>
         </table>
     </div>
-    <FormularioAgregar v-if="mostrarFormulario" :selectedTable="selectedTable" :columns="columns" @submit="handleSubmit" />
+    <FormularioAgregar v-if="mostrarFormulario" :selectedTable="selectedTable" :columns="columns" @submit="handleSubmit" @agregar-completado="volverAGestion" />
 </template>
 
 <script>
 import { ref, onMounted, watch } from 'vue';
-import { getTableData, deleteProduccion, deleteVentas } from '../service/GestionService';
+import { getTableData, deleteProduccion, deleteVentas, deleteCliente,deleteProveedor, deleteVendedor } from '../service/GestionService';
 import FormularioAgregar from './FormularioAgregar.vue';
 
 export default {
@@ -63,11 +63,11 @@ export default {
                 if (data.length > 0) {
                     columns.value = Object.keys(data[0]).filter(column => column !== 'createdAt' && column !== 'updatedAt');
                     rows.value = data.map(row => {
-                        const filteredRow = {};
+                        const filasFiltradas = {};
                         columns.value.forEach(column => {
-                            filteredRow[column] = row[column];
+                            filasFiltradas[column] = row[column];
                         });
-                        return filteredRow;
+                        return filasFiltradas;
                     });
                 } else {
                     // Si no hay datos, solo establece los encabezados de las columnas
@@ -78,8 +78,6 @@ export default {
                 console.error('Error fetching data:', error);
             }
         };
-
-        
 
         const esEditable = (rowIndex, column) => {
             return filaEditada.value === rowIndex && columnaEditada.value === column;
@@ -114,11 +112,22 @@ export default {
         });
 
 
+        const volverAGestion = () => {
+            mostrarFormulario.value = false;
+            obtenerDatosTablas();
+        };
+
         const handleEliminar = () => {
             if (props.selectedTable === 'Produccion') {
                 eliminarProduccion();
             } else if (props.selectedTable === 'VentasMercaderia') {
                 eliminarVentas();
+            }else if (props.selectedTable === 'Clientes') {
+                eliminarCliente();
+            }else if (props.selectedTable === 'Proveedor') {
+                eliminarProveedor();
+            }else if (props.selectedTable === 'Vendedores') {
+                eliminarVendedor();
             }
         };
 
@@ -155,6 +164,51 @@ export default {
             }
         };
 
+        const eliminarVendedor = async () => {
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idvendedor = selectedRow.Id_Vendedor;
+                try {
+                    await deleteVendedor(idvendedor);
+                    obtenerDatosTablas();
+                } catch (error) {
+                    console.error('Error eliminando proveedor:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        };
+
+        const eliminarProveedor = async () => {
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idproveedor = selectedRow.id_Proveedor;
+                try {
+                    await deleteProveedor(idproveedor);
+                    obtenerDatosTablas();
+                } catch (error) {
+                    console.error('Error eliminando proveedor:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        };
+
+        const eliminarCliente = async () => {
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idcliente = selectedRow.id_Cliente;
+                try {
+                    await deleteCliente(idcliente);
+                    obtenerDatosTablas();
+                } catch (error) {
+                    console.error('Error eliminando produccion:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        };
+
         
         onMounted(() => {
             obtenerDatosTablas();
@@ -171,11 +225,15 @@ export default {
             filaSeleccionada,
             seleccionarFila,
             isSelected,
+            volverAGestion,
             mostrarFormulario,
             //METODOS ABM
             handleEliminar,
             eliminarProduccion,
-            eliminarVentas
+            eliminarVentas,
+            eliminarCliente,
+            eliminarVendedor,
+            eliminarProveedor
         };
     }
 };

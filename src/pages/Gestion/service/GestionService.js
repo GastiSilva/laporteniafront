@@ -65,8 +65,6 @@ export const addCliente = async ({ Nombre, Cuil }) => {
 };
 
 
-
-
 //METODOS ELIMINAR 
 export const deleteProduccion = async (id, cantidad) => {
     try {
@@ -88,5 +86,46 @@ export const deleteVentas = async (id, cantidad) => {
     }
 }
 
+export const deleteProveedor = async (id) => {
+    try {
+        const response = await api.delete('/removeProveedor', {
+            data: { id_Proveedor: id } 
+        });
+        return response;
+    } catch (error) {
+        console.error(`No se pudo borrar el cliente con ${id}:`, error);
+        throw error;
+    }
+};
 
-export default {getTableData , deleteProduccion, deleteVentas, addUsuario, addProveedor, addVendedor, addCliente};
+export const deleteVendedor = async (id) => {
+    try {
+        const response = await api.delete('/removeVendedor', {
+            data: { Id_Vendedor: id } 
+        });
+        return response;
+    } catch (error) {
+        console.error(`No se pudo borrar el cliente con ${id}:`, error);
+        throw error;
+    }
+};
+
+export const deleteCliente = async (id) => {
+    try {
+        const response = await api.delete('/removeCliente', {
+            data: { id_Cliente: id } 
+        });
+        return response;
+    } catch (error) {
+        console.error(`No se pudo borrar el cliente con ${id}:`, error);
+        throw error;
+    }
+};
+
+
+
+export default {
+    getTableData ,
+    deleteProduccion, deleteVentas,deleteCliente, deleteProveedor, deleteVendedor,
+    addUsuario, addProveedor, addVendedor, addCliente
+    };
