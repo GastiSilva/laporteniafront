@@ -12,8 +12,8 @@
 </template>
 
 <script>
-import { ref, watch, computed } from 'vue';
-import { addUsuario, addProveedor, addVendedor, addCliente } from '../service/GestionService';
+import { ref, watch, computed, onMounted } from 'vue';
+import { getFormsData, addUsuario, addProveedor, addVendedor, addCliente } from '../service/GestionService';
 
 export default {
   props: {
@@ -21,17 +21,31 @@ export default {
       type: String,
       required: true,
     },
-    columns: {
-      type: Array,
-      required: true,
-    },
+    // columns: {
+    //   type: Array,
+    //   required: true,
+    // },
   },
   emits: ['submit','agregar-completado' ],
   setup(props, { emit }) {
     //Inicializacion del forms
     const formData = ref({});
+    const columns = ref([]);
+    const rows = ref([]);
+
+    // const filteredColumns = computed(() => {
+    //   return columns.value.filter(column => !column.toLowerCase().startsWith('id'));
+    // });
+
+    // watch(filteredColumns, (newColumns) => {
+    //   formData.value = newColumns.reduce((obj, col) => {
+    //   obj[col] = '';
+    //   return obj;
+    //   }, {});
+    // }, { immediate: true });
+
     const filteredColumns = computed(() => {
-      return props.columns.filter(column => !column.toLowerCase().startsWith('id'));
+      return columns.value.filter(column => !column.toLowerCase().startsWith('id'));
     });
 
     watch(filteredColumns, (newColumns) => {
@@ -41,9 +55,50 @@ export default {
       }, {});
     }, { immediate: true });
 
+    watch(rows, (newRows) => {
+      if (newRows.length > 0) {
+        formData.value = { ...newRows[0] };
+      }
+    }, { immediate: true });
+
+
     const handleSubmit = () => {
       emit('submit', { ...formData.value });
     };
+
+    const crearForms = async () => {
+      try {
+        const response = await getFormsData(props.selectedTable);
+        const data = response.data;
+        console.log('Data:', data);
+             if (data) {
+          columns.value = data.columns.filter(column => !column.toLowerCase().startsWith('id'));
+          formData.value = {};
+
+          data.columns.forEach(column => {
+            if (data.foreignColumns && data.foreignColumns[column]) {
+              data.foreignColumns[column].forEach((foreignCol, index) => {
+                if (index !== 0) { // Excluye el ID
+                  formData.value[foreignCol] = '';
+                  columns.value.push(foreignCol);
+                }
+              });
+            } else if (!column.toLowerCase().startsWith('id')) {
+              formData.value[column] = '';
+            }
+          });
+        }
+
+
+
+
+      } catch (error) {
+        console.error('Error al obtener datos de la tabla:', error);
+        alert('Error al obtener datos de la tabla');
+      }
+    };
+
+
 
     const handleAgregar = () => {
       try{  
@@ -63,7 +118,7 @@ export default {
       }
     };
 
-    //completado de los distonos fornms
+    //completado de los distintnos fornms
     const agregarUsuario = async (formData) => {
       console.log('formData:', formData);
       try {
@@ -108,12 +163,16 @@ export default {
       }
     };
 
+    onMounted(() => {
+      crearForms();
+    });
 
     return {
       formData,
       filteredColumns,
       handleSubmit,
       handleAgregar,
+      crearForms,
       agregarUsuario,
       agregarProveedor,
       agregarCliente
