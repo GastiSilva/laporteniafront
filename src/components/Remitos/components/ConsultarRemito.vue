@@ -76,7 +76,6 @@ export default {
         const obtenerRemitosData = async () => {
             try {
                 const response = await obtenerRemitos();
-                console.log("Remitos obtenidos:", response);
                 remitos.value = response.map(remito => ({
                     Id_Remito: remito.Id_Remito,
                     Senior: remito.Senior,

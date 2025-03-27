@@ -3,9 +3,13 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      // { path: '', component: () => import('pages/IndexPage.vue') },
       { path: '', component: () => import('src/pages/Login/UserLogin.vue') },
       { path: '/adminHome', component: () => import('src/pages/AdminHome/AdminHome.vue') },
+      { path: '/remitosView', component: () => import('src/components/Remitos/RemitosVIew.vue') },
+      { path: '/remitosConsultarView', component: () => import('src/components/Remitos/components/ConsultarRemito.vue') },
+      { path: '/gestionView', component: () => import('src/pages/Gestion/GestionView.vue') },
+      { path: '/movimientosView', component: () => import('src/components/Tablas/TablasView.vue') },
+      { path: '/exportarView', component: () => import('src/pages/ExportarDatos/ExportarView.vue') },      
     ]
   },
 

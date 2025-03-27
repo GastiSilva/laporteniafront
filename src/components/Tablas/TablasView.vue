@@ -197,7 +197,6 @@ export default {
                         fecha,
                     })
                 );
-                console.log("Productos a enviar:", productos);
                 const response = await guardarEnDevolucion(productos);
                 alert("Datos enviados con éxito");
                 addedProducts.value = [];
@@ -221,7 +220,6 @@ export default {
                         fecha,
                     })
                 );
-                console.log("Productos a enviar:", productos);
                 const response = await guardarEnVentas(productos);
                 alert("Datos enviados con éxito: " + response.message);
                 addedProducts.value = [];

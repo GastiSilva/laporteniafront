@@ -31,16 +31,10 @@ export default {
         const columns = ref([]);
         const rows = ref([]);
 
-        console.log("props: ", props.selectedTable);
-        
         const obtenerDatosTablas = async () => {
             try {
             const response = await getTableData(props.selectedTable);
-            console.log("response: ", response);
-            
-            const data = response.data;
-            console.log("data: ", data);
-            
+            const data = response.data;         
             if (data.length > 0) {
                 //agregara  futuro que no traiga las que comienzen con id && !column.startsWith('id')&& !column.startsWith('Id') pero se va a precisar que aquellas que tengan una relacion traigan el dato de la misma
                 columns.value = Object.keys(data[0]).filter(column => column !== 'createdAt' && column !== 'updatedAt' );

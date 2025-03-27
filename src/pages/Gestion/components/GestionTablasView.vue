@@ -1,10 +1,10 @@
 <template>
-    <div v-if="!mostrarFormulario">
+    <div v-if="currentView === 'gestionTablasView'">
         <q-card-actions align="right">
-            <q-btn v-if="selectedTable" label="Agregar" color="primary" icon="add" @click="mostrarFormulario = true" />
+            <q-btn v-if="selectedTable" label="Agregar" color="primary" icon="add" @click="currentView = 'formularioAgregar'" :disable="permitirAgregar" />
             <q-btn v-if="selectedTable" label="Eliminar" color="primary" icon="remove" @click="handleEliminar" />
         </q-card-actions>
-        <table >
+        <table>
             <thead>
                 <tr>
                     <th v-for="(column, index) in columns" :key="index"
@@ -27,12 +27,13 @@
             </tbody>
         </table>
     </div>
-    <FormularioAgregar v-if="mostrarFormulario" :selectedTable="selectedTable" :columns="columns" @submit="handleSubmit" @agregar-completado="volverAGestion" />
+    <FormularioAgregar v-if="currentView === 'formularioAgregar'" :selectedTable="selectedTable" :columns="columns"
+         @submit="handleSubmit" @agregar-completado="volverAGestion"   @volver="volverAGestion" />
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue';
-import { getTableData, deleteProduccion, deleteVentas, deleteCliente,deleteProveedor, deleteVendedor } from '../service/GestionService';
+import { ref, onMounted, watch, computed } from 'vue';
+import { getTableData, deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor } from '../service/GestionService';
 import FormularioAgregar from './FormularioAgregar.vue';
 
 export default {
@@ -47,6 +48,7 @@ export default {
         }
     },
     setup(props) {
+        const currentView = ref('gestionTablas');
         const columns = ref([]);
         const rows = ref([]);
         const filaEditada = ref(null);
@@ -106,14 +108,17 @@ export default {
             return filaSeleccionada.value === rowIndex;
         };
 
-        watch(() => props.selectedTable, () => {
-            obtenerDatosTablas();
-            mostrarFormulario.value = false;
+       const permitirAgregar = computed(() => {
+            return (props.selectedTable === 'Devolucion' || props.selectedTable === 'VentasMercaderia' || props.selectedTable === 'Produccion' || props.selectedTable === 'MateriaPrima');
         });
 
+        watch(() => props.selectedTable, () => {
+            obtenerDatosTablas();
+            currentView.value = 'gestionTablasView';
+        });
 
         const volverAGestion = () => {
-            mostrarFormulario.value = false;
+            currentView.value = 'gestionTablasView';
             obtenerDatosTablas();
         };
 
@@ -122,11 +127,11 @@ export default {
                 eliminarProduccion();
             } else if (props.selectedTable === 'VentasMercaderia') {
                 eliminarVentas();
-            }else if (props.selectedTable === 'Clientes') {
+            } else if (props.selectedTable === 'Clientes') {
                 eliminarCliente();
-            }else if (props.selectedTable === 'Proveedor') {
+            } else if (props.selectedTable === 'Proveedor') {
                 eliminarProveedor();
-            }else if (props.selectedTable === 'Vendedores') {
+            } else if (props.selectedTable === 'Vendedores') {
                 eliminarVendedor();
             }
         };
@@ -209,7 +214,7 @@ export default {
             }
         };
 
-        
+
         onMounted(() => {
             obtenerDatosTablas();
         });
@@ -217,9 +222,11 @@ export default {
         return {
             columns,
             rows,
+            currentView,
             getTableData,
             esEditable,
             permitirEditar,
+            permitirAgregar,
             guardarEdit,
             editValue,
             filaSeleccionada,

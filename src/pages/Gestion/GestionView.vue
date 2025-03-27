@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref } from 'vue';
 import { TraerTablas } from '../ExportarDatos/service/ExportarDatosService';
 import GestionTablasView from './components/GestionTablasView.vue';
 
@@ -29,10 +29,7 @@ export default {
     setup() {
         const selectedTable = ref("");
         const tables = ref([]);
-        console.log("envioo", selectedTable);
 
-        const exportData = () => {
-        };
 
         const tablasImport = async () => {
             try {
@@ -45,12 +42,6 @@ export default {
         };
 
         
-
-        watch(selectedTable, (newValue) => {
-            console.log("Nueva tabla seleccionada:", newValue);
-        });
-
-
         onMounted(() => {
             tablasImport();
         });
@@ -58,7 +49,6 @@ export default {
         return {
             selectedTable,
             tables,
-            exportData,
             tablasImport
         };
     }

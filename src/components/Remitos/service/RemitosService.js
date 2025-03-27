@@ -32,9 +32,7 @@ export const obtenerRemitos = async () => {
 
 export const obtenerPDFRemitos = async (id) => {
   try {
-    console.log("envio ", id);
-
-    const response = await api.post('/obtenerRemitoPDF', { Id_Remito: id.Id_Remito }, {
+      const response = await api.post('/obtenerRemitoPDF', { Id_Remito: id.Id_Remito }, {
       responseType: 'blob', 
     });
 

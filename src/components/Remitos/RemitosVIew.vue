@@ -247,11 +247,10 @@ export default {
         Productos: productosTransformados
       };
 
-      console.log('Datos del remito:', remitoData);
+
 
       try {
-        const response = await crearRemito(remitoData);
-        console.log('Remito creado con éxito:', response);
+        const response = await crearRemito(remitoData);;
         alert('Remito creado con éxito');
         
         senior.value = '';
