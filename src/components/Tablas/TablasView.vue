@@ -92,7 +92,7 @@ export default {
 
                 if (productFound) {
                     addedProducts.value.push({
-                        id: productId++,
+                        id: productFound.value++,
                         producto: productFound.label,
                         cantidad: newProduct.value.cantidad,
                         fecha: filters.value.fecha || new Date().toISOString().slice(0, 10),
@@ -168,8 +168,11 @@ export default {
                 return;
             }
             try {
+                console.log("Productos a enviar:", addedProducts.value);
+                
                 const productos = addedProducts.value.map(
-                    ({ producto, cantidad, fecha }) => ({
+                    ({ id, producto, cantidad, fecha }) => ({
+                        id,
                         nombre: producto,
                         cantidad,
                         fecha,

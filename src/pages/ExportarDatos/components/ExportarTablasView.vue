@@ -17,8 +17,7 @@
 
 <script>
 import { ref, onMounted, watch } from 'vue';
-import getTableData from '../../Gestion/service/GestionService';
-
+import { getTableData } from '../../Gestion/service/GestionService.js'; // Ajusta la ruta según tu estructura de carpetas
 export default {
     name: 'ExportarTablasView',
     props: {

@@ -30,6 +30,7 @@ import { getFormsData, addUsuario, addProveedor, addVendedor, addCliente } from 
 
 
 export default {
+  name: 'FormularioAgregar',
   props: {
     selectedTable: {
       type: String,

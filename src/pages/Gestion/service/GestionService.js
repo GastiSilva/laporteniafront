@@ -20,6 +20,16 @@ export const getFormsData = async (tableName) => {
     }
 };
 
+export const getCompraFormData = async () =>{
+    try {
+        const response = await api.get('/compras');
+        return response;
+    } catch (error) {
+        console.error(`Error fetching data from table Compra:`, error);
+        throw error;
+    }
+}
+
 //METODOS AGREGAR
 export const addUsuario = async ({ Usuario, Contrasenia, Mail }) => {
     try {
@@ -135,7 +145,7 @@ export const deleteCliente = async (id) => {
 
 
 export default {
-    getTableData , getFormsData, 
+    getTableData , getFormsData, getCompraFormData, 
     deleteProduccion, deleteVentas,deleteCliente, deleteProveedor, deleteVendedor,
     addUsuario, addProveedor, addVendedor, addCliente
     };

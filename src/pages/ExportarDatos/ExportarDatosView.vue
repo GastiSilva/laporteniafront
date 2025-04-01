@@ -15,27 +15,8 @@
                 </q-card-section>
             </div>
     
-            
             <q-card-actions align="right">
-                <q-btn label="Consultar" color="primary"  />
-                <q-btn v-if="selectedTable" label="Exportar" color="primary" icon="download" @click="showExportModal = true" />
-                <q-dialog v-model="showExportModal">
-                    <q-card>
-                        <q-card-section>
-                            <div class="text-h6 q-mb-md">Seleccione el formato de exportación</div>
-                        </q-card-section>
-                        <q-separator />
-                        <q-card-section class="row justify-center">
-                            <q-btn class="q-ma-sm" label="PDF" color="primary" @click="exportData('pdf')" />
-                            <q-btn class="q-ma-sm" label="Excel (XLSX)" color="primary" @click="exportData('xlsx')" />
-                            <q-btn class="q-ma-sm" label="Word" color="primary" @click="exportData('word')" />
-                        </q-card-section>
-                        <q-separator />
-                        <q-card-actions align="right">
-                            <q-btn flat label="Cancelar" color="primary" v-close-popup />
-                        </q-card-actions>
-                    </q-card>
-                </q-dialog>
+                <q-btn v-if="selectedTable" label="Exportar" color="primary" icon="download"  @click="handleExportar"/>          
             </q-card-actions>
             
         </div>
@@ -49,8 +30,9 @@
 
 <script>
 import { onMounted, ref } from 'vue';
-import { TraerTablasExport} from './service/ExportarDatosService';
+import { TraerTablasExport, GenerateExcellProduccion, GenerateExcellDevolucion} from './service/ExportarDatosService';
 import ExportarTablasView from './components/ExportarTablasView.vue';
+
 
 export default {
     name: 'ExportarDatosView',
@@ -60,10 +42,17 @@ export default {
     setup() {
         const selectedTable = ref(null);
         const tables = ref([]);
-        const showExportModal = ref(false);
         const exportData = () => {
           
         };
+
+        const handleExportar = () =>{
+            if(selectedTable.value === "Produccion"){
+                generarExcellProduccion();
+            }else if(selectedTable.value === "Devolucion"){
+                generarExcellDevolucion();
+            }
+        }
 
         const tablasImport = async () => {
             try {
@@ -74,6 +63,44 @@ export default {
                 console.log("Error: ", error);
             }
         };
+
+        const generarExcellProduccion = async () => {
+            try {
+            const response = await GenerateExcellProduccion(selectedTable.value);
+            console.log("Response: ", response);
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${selectedTable.value}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            }
+            catch (error){
+            console.log("Error: ", error);
+            }
+        };
+        const generarExcellDevolucion = async () => {
+            try {
+            const response = await GenerateExcellDevolucion(selectedTable.value);
+            console.log("Response: ", response);
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${selectedTable.value}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            }
+            catch (error){
+            console.log("Error: ", error);
+            }
+        };
+
         onMounted(() => {
             tablasImport();
         });
@@ -81,9 +108,11 @@ export default {
         return {
             selectedTable,
             tables,
-            showExportModal,
             exportData,
-            tablasImport
+            tablasImport,
+            generarExcellProduccion,
+            generarExcellDevolucion,
+            handleExportar
         };
     }
 };

@@ -45,11 +45,11 @@
   class="q-pa-md tab-content">
 
             <q-tab-panel name="remitos">
-              <RemitosView :menuCollapsed="menuCollapsed" @toggleMenu="toggleMenu" />
+                <RemitosView :menuCollapsed="menuCollapsed" @toggleMenu="toggleMenu" />
             </q-tab-panel>
 
             <q-tab-panel name="movimientos">
-              <TablasView />
+                <TablasView />
             </q-tab-panel>
 
             <q-tab-panel name="datos">
@@ -106,11 +106,12 @@ export default {
       }
     };
 
+
     return {
       splitterModel,
       tab,
       menuCollapsed,
-      toggleMenu
+      toggleMenu,
     };
   }
 };
