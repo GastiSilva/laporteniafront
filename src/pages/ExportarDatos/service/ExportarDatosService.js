@@ -44,7 +44,43 @@ export const GenerateExcellDevolucion = async () =>{
     }
 }
 
+export const GenerateExcellVentas = async () =>{
+    try {
+        const response = await api.get('/exportarExcellVentas', {
+            responseType: 'blob', 
+        });  
+        return response;
+    } catch (error) {
+        console.error('Error al traer tablas:', error);
+        throw error;
+    }
+}
+
+export const GenerateExcellProductos = async () =>{
+    try {
+        const response = await api.get('/ExportarExcellProductos', {
+            responseType: 'blob', 
+        });  
+        return response;
+    } catch (error) {
+        console.error('Error al traer tablas:', error);
+        throw error;
+    }
+}
+
+export const GenerateExcellIngresos = async () =>{
+    try {
+        const response = await api.get('/ExportarExcellIngresos', {
+            responseType: 'blob', 
+        });  
+        return response;
+    } catch (error) {
+        console.error('Error al traer tablas:', error);
+        throw error;
+    }
+}
+                                                                                   
 export default {
     TraerTablas, TraerTablasExport,
-    GenerateExcellProduccion, GenerateExcellDevolucion
+    GenerateExcellProduccion, GenerateExcellDevolucion, GenerateExcellVentas, GenerateExcellProductos, GenerateExcellIngresos
 };

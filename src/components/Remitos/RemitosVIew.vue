@@ -126,6 +126,8 @@ import ConsultarRemito from './components/ConsultarRemito.vue';
 import { RemitoPDFAPI } from 'src/pages/AdminHome/service/AdminAPI';
 import { crearRemito, obtenerEstados } from './service/RemitosService';
 import { fetchProducts } from "../Tablas/service/AddDatosAPI";
+import { useQuasar } from 'quasar';
+
 
 export default {
   components: {
@@ -133,6 +135,7 @@ export default {
   },
   setup() {
     const currentView = ref('main');
+    const $q = useQuasar();
     // Campos principales
     const fecha = ref('');
     const senior = ref('');
@@ -251,7 +254,11 @@ export default {
 
       try {
         const response = await crearRemito(remitoData);;
-        alert('Remito creado con éxito');
+        $q.notify({
+                    type: "positive",
+                    message: "Remito creado con éxito.",
+                    position: "top",
+                });
         
         senior.value = '';
         domicilio.value = '';
@@ -310,7 +317,11 @@ export default {
 
       } catch (error) {
         console.error("Error al cargar productos:", error);
-        alert("No se pudo cargar la lista de productos.");
+        $q.notify({
+                    type: "negative",
+                    message: "No se pudieron cargar los productos.",
+                    position: "top",
+                });
       } finally {
         loading.value = false;
       }

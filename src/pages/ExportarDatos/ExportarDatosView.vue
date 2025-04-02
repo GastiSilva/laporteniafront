@@ -30,8 +30,11 @@
 
 <script>
 import { onMounted, ref } from 'vue';
-import { TraerTablasExport, GenerateExcellProduccion, GenerateExcellDevolucion} from './service/ExportarDatosService';
+import  {    TraerTablasExport,
+             GenerateExcellProduccion, GenerateExcellDevolucion, GenerateExcellVentas, GenerateExcellProductos, GenerateExcellIngresos
+        } from './service/ExportarDatosService';
 import ExportarTablasView from './components/ExportarTablasView.vue';
+import { useQuasar } from 'quasar';
 
 
 export default {
@@ -40,6 +43,7 @@ export default {
         ExportarTablasView
     },
     setup() {
+        const $q = useQuasar();
         const selectedTable = ref(null);
         const tables = ref([]);
         const exportData = () => {
@@ -49,15 +53,46 @@ export default {
         const handleExportar = () =>{
             if(selectedTable.value === "Produccion"){
                 generarExcellProduccion();
+                $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
             }else if(selectedTable.value === "Devolucion"){
                 generarExcellDevolucion();
+                $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
+            }else if(selectedTable.value === "VentasMercaderia"){
+                generarExcellVentasMercaderia();
+                $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
+            }else if(selectedTable.value === "Productos"){
+                generarExcellProductos();
+                $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
+            }else if(selectedTable.value === "Ingresos"){
+                generarExcellIngresos();
+                $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
             }
-        }
+        };
 
         const tablasImport = async () => {
             try {
                 const response = await TraerTablasExport();
-                tables.value = response.data.map(table => table.table_name);
+                tables.value = response.data.map(table => table.table_name).sort((a, b) => a.localeCompare(b));
             }
             catch (error){
                 console.log("Error: ", error);
@@ -82,10 +117,10 @@ export default {
             console.log("Error: ", error);
             }
         };
+
         const generarExcellDevolucion = async () => {
             try {
             const response = await GenerateExcellDevolucion(selectedTable.value);
-            console.log("Response: ", response);
             const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -101,6 +136,62 @@ export default {
             }
         };
 
+        const generarExcellVentasMercaderia = async () => {
+            try { 
+            const response = await GenerateExcellVentas(selectedTable.value);
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${selectedTable.value}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            }
+            catch (error){
+            console.log("Error: ", error);
+            }
+        };
+
+        const generarExcellProductos = async () => {
+            try { 
+            const response = await GenerateExcellProductos(selectedTable.value);
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${selectedTable.value}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            }
+            catch (error){
+            console.log("Error: ", error);
+            }
+        };
+
+        const generarExcellIngresos = async () => {
+            try { 
+            const response = await GenerateExcellIngresos(selectedTable.value);
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${selectedTable.value}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            }
+            catch (error){
+            console.log("Error: ", error);
+            }
+        };
+
+       
+
         onMounted(() => {
             tablasImport();
         });
@@ -112,15 +203,14 @@ export default {
             tablasImport,
             generarExcellProduccion,
             generarExcellDevolucion,
+            generarExcellVentasMercaderia,
+            generarExcellProductos,
+            generarExcellIngresos,
             handleExportar
         };
     }
 };
 </script>
 <style scoped>
-/* .exportar-datos-page {
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 20px;
-} */
+
 </style>
