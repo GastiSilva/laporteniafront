@@ -79,8 +79,20 @@ export const GenerateExcellIngresos = async () =>{
         throw error;
     }
 }
+
+export const GenerateExcellClientes = async () =>{
+    try {
+        const response = await api.get('/ExportarExcellClientes', {
+            responseType: 'blob', 
+        });  
+        return response;
+    } catch (error) {
+        console.error('Error al traer tablas:', error);
+        throw error;
+    }
+}
                                                                                    
 export default {
     TraerTablas, TraerTablasExport,
-    GenerateExcellProduccion, GenerateExcellDevolucion, GenerateExcellVentas, GenerateExcellProductos, GenerateExcellIngresos
+    GenerateExcellProduccion, GenerateExcellDevolucion, GenerateExcellVentas, GenerateExcellProductos, GenerateExcellIngresos, GenerateExcellClientes
 };

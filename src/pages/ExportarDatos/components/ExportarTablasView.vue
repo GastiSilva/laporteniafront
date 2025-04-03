@@ -35,12 +35,15 @@ export default {
             const response = await getTableData(props.selectedTable);
             const data = response.data;         
             if (data.length > 0) {
-                //agregara  futuro que no traiga las que comienzen con id && !column.startsWith('id')&& !column.startsWith('Id') pero se va a precisar que aquellas que tengan una relacion traigan el dato de la misma
-                columns.value = Object.keys(data[0]).filter(column => column !== 'createdAt' && column !== 'updatedAt' );
+                columns.value = Object.keys(data[0]).filter(column => column !== 'createdAt' && column !== 'updatedAt');
                 rows.value = data.map(row => {
                 const filteredRow = {};
                 columns.value.forEach(column => {
+                    if (typeof row[column] === 'boolean') {
+                    filteredRow[column] = row[column] ? '✔' : '✘';
+                    } else {
                     filteredRow[column] = row[column];
+                    }
                 });
                 return filteredRow;
                 });

@@ -307,6 +307,7 @@ export default {
     const cargarProductos = async () => {
       try {
         loading.value = true;
+       
         const productos = await fetchProducts();
         allProducts.value = productos;
         

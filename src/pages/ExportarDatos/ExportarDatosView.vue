@@ -31,7 +31,7 @@
 <script>
 import { onMounted, ref } from 'vue';
 import  {    TraerTablasExport,
-             GenerateExcellProduccion, GenerateExcellDevolucion, GenerateExcellVentas, GenerateExcellProductos, GenerateExcellIngresos
+             GenerateExcellProduccion, GenerateExcellDevolucion, GenerateExcellVentas, GenerateExcellProductos, GenerateExcellIngresos, GenerateExcellClientes
         } from './service/ExportarDatosService';
 import ExportarTablasView from './components/ExportarTablasView.vue';
 import { useQuasar } from 'quasar';
@@ -53,39 +53,16 @@ export default {
         const handleExportar = () =>{
             if(selectedTable.value === "Produccion"){
                 generarExcellProduccion();
-                $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
             }else if(selectedTable.value === "Devolucion"){
                 generarExcellDevolucion();
-                $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
             }else if(selectedTable.value === "VentasMercaderia"){
                 generarExcellVentasMercaderia();
-                $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
             }else if(selectedTable.value === "Productos"){
                 generarExcellProductos();
-                $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
             }else if(selectedTable.value === "Ingresos"){
                 generarExcellIngresos();
-                $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
+            }else if(selectedTable.value === "Clientes"){
+                generarExcellClientes();        
             }
         };
 
@@ -112,6 +89,11 @@ export default {
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
+            $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
             }
             catch (error){
             console.log("Error: ", error);
@@ -130,6 +112,11 @@ export default {
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
+            $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
             }
             catch (error){
             console.log("Error: ", error);
@@ -166,6 +153,11 @@ export default {
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
+            $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
             }
             catch (error){
             console.log("Error: ", error);
@@ -184,13 +176,39 @@ export default {
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
+            $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
             }
             catch (error){
             console.log("Error: ", error);
             }
         };
 
-       
+        const generarExcellClientes = async () => {
+            try { 
+            const response = await GenerateExcellClientes(selectedTable.value);
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${selectedTable.value}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
+            }
+            catch (error){
+            console.log("Error: ", error);
+            }
+        };
 
         onMounted(() => {
             tablasImport();
@@ -206,6 +224,7 @@ export default {
             generarExcellVentasMercaderia,
             generarExcellProductos,
             generarExcellIngresos,
+            generarExcellClientes,
             handleExportar
         };
     }
