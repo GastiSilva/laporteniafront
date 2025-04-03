@@ -53,15 +53,15 @@ export default {
       loginUserAPI(username.value, password.value)
         .then((success) => {
           if (success) {
-            alert('Login exitoso, se lo redirigirá al sistema');
+            $q.notify({
+                    type: "positive",
+                    message: "Bienvenido al sistema.",
+                    position: "top",
+                });
             push('/adminHome'); 
           } else {
             errorMessage.value = 'Usuario o contraseña incorrectos';
-          }
-          console.log("usuario", username.value);
-          console.log("contraseña", password.value);
-          
-          
+          }          
         })
         .catch((error) => {
           errorMessage.value = 'Usuario o contraseña incorrectos';

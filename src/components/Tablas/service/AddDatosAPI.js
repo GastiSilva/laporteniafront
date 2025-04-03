@@ -13,10 +13,9 @@ export const guardarEnProduccion = async (productos) => {
     }
 };
 
-
 export const fetchProducts = async () => {
     try {
-        const response = await api.post('/FetchProducts');
+        const response = await api.post('/FetchProducts');        
         return response.data;
     } catch (error) {
         console.error("Error al cargar productos:", error);
@@ -48,4 +47,11 @@ export const guardarEnVentas = async (productos) => {
         console.error("Error al enviar datos Devolución:", error);
         throw new Error("Error al guardar los datos en Devolución.");
     }
+};
+
+export default {
+    fetchProducts,
+    guardarEnProduccion,
+    guardarEnDevolucion,
+    guardarEnVentas
 };

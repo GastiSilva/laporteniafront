@@ -15,27 +15,8 @@
                 </q-card-section>
             </div>
     
-            
             <q-card-actions align="right">
-                <q-btn label="Consultar" color="primary"  />
-                <q-btn v-if="selectedTable" label="Exportar" color="primary" icon="download" @click="showExportModal = true" />
-                <q-dialog v-model="showExportModal">
-                    <q-card>
-                        <q-card-section>
-                            <div class="text-h6 q-mb-md">Seleccione el formato de exportación</div>
-                        </q-card-section>
-                        <q-separator />
-                        <q-card-section class="row justify-center">
-                            <q-btn class="q-ma-sm" label="PDF" color="primary" @click="exportData('pdf')" />
-                            <q-btn class="q-ma-sm" label="Excel (XLSX)" color="primary" @click="exportData('xlsx')" />
-                            <q-btn class="q-ma-sm" label="Word" color="primary" @click="exportData('word')" />
-                        </q-card-section>
-                        <q-separator />
-                        <q-card-actions align="right">
-                            <q-btn flat label="Cancelar" color="primary" v-close-popup />
-                        </q-card-actions>
-                    </q-card>
-                </q-dialog>
+                <q-btn v-if="selectedTable" label="Exportar" color="primary" icon="download"  @click="handleExportar"/>          
             </q-card-actions>
             
         </div>
@@ -49,8 +30,12 @@
 
 <script>
 import { onMounted, ref } from 'vue';
-import { TraerTablasExport} from './service/ExportarDatosService';
+import  {    TraerTablasExport,
+             GenerateExcellProduccion, GenerateExcellDevolucion, GenerateExcellVentas, GenerateExcellProductos, GenerateExcellIngresos, GenerateExcellClientes
+        } from './service/ExportarDatosService';
 import ExportarTablasView from './components/ExportarTablasView.vue';
+import { useQuasar } from 'quasar';
+
 
 export default {
     name: 'ExportarDatosView',
@@ -58,22 +43,173 @@ export default {
         ExportarTablasView
     },
     setup() {
+        const $q = useQuasar();
         const selectedTable = ref(null);
         const tables = ref([]);
-        const showExportModal = ref(false);
         const exportData = () => {
           
+        };
+
+        const handleExportar = () =>{
+            if(selectedTable.value === "Produccion"){
+                generarExcellProduccion();
+            }else if(selectedTable.value === "Devolucion"){
+                generarExcellDevolucion();
+            }else if(selectedTable.value === "VentasMercaderia"){
+                generarExcellVentasMercaderia();
+            }else if(selectedTable.value === "Productos"){
+                generarExcellProductos();
+            }else if(selectedTable.value === "Ingresos"){
+                generarExcellIngresos();
+            }else if(selectedTable.value === "Clientes"){
+                generarExcellClientes();        
+            }
         };
 
         const tablasImport = async () => {
             try {
                 const response = await TraerTablasExport();
-                tables.value = response.data.map(table => table.table_name);
+                tables.value = response.data.map(table => table.table_name).sort((a, b) => a.localeCompare(b));
             }
             catch (error){
                 console.log("Error: ", error);
             }
         };
+
+        const generarExcellProduccion = async () => {
+            try {
+            const response = await GenerateExcellProduccion(selectedTable.value);
+            console.log("Response: ", response);
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${selectedTable.value}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
+            }
+            catch (error){
+            console.log("Error: ", error);
+            }
+        };
+
+        const generarExcellDevolucion = async () => {
+            try {
+            const response = await GenerateExcellDevolucion(selectedTable.value);
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${selectedTable.value}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
+            }
+            catch (error){
+            console.log("Error: ", error);
+            }
+        };
+
+        const generarExcellVentasMercaderia = async () => {
+            try { 
+            const response = await GenerateExcellVentas(selectedTable.value);
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${selectedTable.value}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            }
+            catch (error){
+            console.log("Error: ", error);
+            }
+        };
+
+        const generarExcellProductos = async () => {
+            try { 
+            const response = await GenerateExcellProductos(selectedTable.value);
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${selectedTable.value}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
+            }
+            catch (error){
+            console.log("Error: ", error);
+            }
+        };
+
+        const generarExcellIngresos = async () => {
+            try { 
+            const response = await GenerateExcellIngresos(selectedTable.value);
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${selectedTable.value}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
+            }
+            catch (error){
+            console.log("Error: ", error);
+            }
+        };
+
+        const generarExcellClientes = async () => {
+            try { 
+            const response = await GenerateExcellClientes(selectedTable.value);
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${selectedTable.value}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
+            }
+            catch (error){
+            console.log("Error: ", error);
+            }
+        };
+
         onMounted(() => {
             tablasImport();
         });
@@ -81,17 +217,19 @@ export default {
         return {
             selectedTable,
             tables,
-            showExportModal,
             exportData,
-            tablasImport
+            tablasImport,
+            generarExcellProduccion,
+            generarExcellDevolucion,
+            generarExcellVentasMercaderia,
+            generarExcellProductos,
+            generarExcellIngresos,
+            generarExcellClientes,
+            handleExportar
         };
     }
 };
 </script>
 <style scoped>
-/* .exportar-datos-page {
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 20px;
-} */
+
 </style>

@@ -50,6 +50,7 @@
 <script>
 import { ref, computed, onMounted } from "vue";
 import { guardarEnProduccion, fetchProducts, guardarEnDevolucion, guardarEnVentas } from "./service/AddDatosAPI";
+import { useQuasar } from "quasar";
 
 export default {
     setup() {
@@ -59,7 +60,7 @@ export default {
             "Compra de Materia Prima",
             "Venta de Mercaderías",
         ];
-
+        const $q = useQuasar();
         const selectedProduct = ref(null);
         const filteredProductsOptions = ref([]);
         const allProducts = ref([]);
@@ -70,7 +71,7 @@ export default {
         const filters = ref({ fecha: "" });
         const newProduct = ref({ producto: "", cantidad: null, fecha: "" });
         const addedProducts = ref([]);
-        let productId = 1;
+        // let productId = 1;
 
         const onSelectUpdate = (val) => {
             console.log("Valor seleccionado:", val);
@@ -92,20 +93,22 @@ export default {
 
                 if (productFound) {
                     addedProducts.value.push({
-                        id: productId++,
+                        id: productFound.value++,
                         producto: productFound.label,
                         cantidad: newProduct.value.cantidad,
                         fecha: filters.value.fecha || new Date().toISOString().slice(0, 10),
                     });
                     selectedProduct.value = null;
                     newProduct.value.cantidad = null;
-                    filters.value.fecha = "";
                 } else {
                     console.error("El producto seleccionado no se encontró en las opciones filtradas.");
-                    alert("El producto seleccionado no se encontró. Por favor, inténtalo de nuevo.");
                 }
             } else {
-                alert("Por favor, selecciona un producto y una cantidad válida.");
+                $q.notify({
+                    type: "warning",
+                    message: "Por favor, selecciona un producto y una cantidad válida.",
+                    position: "top",
+                });
             }
         };
 
@@ -156,7 +159,11 @@ export default {
                 }));
             } catch (error) {
                 console.error("Error al cargar productos:", error);
-                alert("No se pudo cargar la lista de productos.");
+                $q.notify({
+                    type: "negative",
+                    message: "No se pudo cargar los productos.",
+                    position: "top",
+                });
             } finally {
                 loading.value = false;
             }
@@ -164,29 +171,41 @@ export default {
 
         const EnviarDatosProduccion = async () => {
             if (addedProducts.value.length === 0) {
-                alert("No hay productos para enviar.");
+                $q.notify({
+                    type: "negative",
+                    message: "No hay productos para enviar.",
+                    position: "top",
+                });
                 return;
             }
-            try {
+            try {                
                 const productos = addedProducts.value.map(
-                    ({ producto, cantidad, fecha }) => ({
+                    ({ id, producto, cantidad, fecha }) => ({
+                        id,
                         nombre: producto,
                         cantidad,
                         fecha,
                     })
                 );
                 const response = await guardarEnProduccion(productos);
-                alert("Datos enviados con éxito: " + response.message);
+                $q.notify({
+                    type: "positive",
+                    message: "Datos cargados con éxito en Producción",
+                    position: "top",
+                });
                 addedProducts.value = [];
             } catch (error) {
                 console.error("Error al enviar los datos:", error);
-                alert(error.message || "Error al enviar los datos.");
             }
         };
 
         const EnviarDatosDevolucion = async () => {
             if (addedProducts.value.length === 0) {
-                alert("No hay productos para enviar.");
+                $q.notify({
+                    type: "negative",
+                    message: "No hay productos para enviar.",
+                    position: "top",
+                });
                 return;
             }
             try {
@@ -197,20 +216,26 @@ export default {
                         fecha,
                     })
                 );
-                console.log("Productos a enviar:", productos);
                 const response = await guardarEnDevolucion(productos);
-                alert("Datos enviados con éxito");
+                $q.notify({
+                    type: "positive",
+                    message: "Datos cargados con éxito en Devolución",
+                    position: "top",
+                });
                 addedProducts.value = [];
             } catch (error) {
                 console.error("Error al enviar los datos:", error);
-                alert(error.message || "Error al enviar los datos.");
             }
         };
 
 
         const EnviarDatosVentas = async () => {
             if (addedProducts.value.length === 0) {
-                alert("No hay productos para enviar.");
+                $q.notify({
+                    type: "negative",
+                    message: "No hay productos para enviar.",
+                    position: "top",
+                });
                 return;
             }
             try {
@@ -221,13 +246,15 @@ export default {
                         fecha,
                     })
                 );
-                console.log("Productos a enviar:", productos);
                 const response = await guardarEnVentas(productos);
-                alert("Datos enviados con éxito: " + response.message);
+                $q.notify({
+                    type: "positive",
+                    message: "Datos cargados con éxito en Ventas",
+                    position: "top",
+                });
                 addedProducts.value = [];
             } catch (error) {
                 console.error("Error al enviar los datos:", error);
-                alert(error.message || "Error al enviar los datos.");
             }
         };
 

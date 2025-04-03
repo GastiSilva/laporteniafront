@@ -1,37 +1,84 @@
 <template>
+  <q-btn flat label="Volver" text-color="white" class="q-ma-md" @click="$emit('volver')" rounded
+   style="background-color:#0e1d75;" />
   <div class="form-container">
-    <form @submit.prevent="handleSubmit" :class="['form-card', filteredColumns.length > 4 ? 'two-column' : '']">
+    <form @submit.prevent="handleSubmit" class="form-card">
       <h2 class="form-title">Agregar Datos</h2>
-      <div v-for="column in filteredColumns" :key="column" class="form-group">
-        <label :for="column" class="form-label">{{ column }}</label>
-        <input :id="column" v-model="formData[column]" class="form-input" required />
+      <div v-for="(group, index) in groupedColumns" :key="index" class="form-group-container">
+        <form v-if="group.title" class="nested-form">
+          <h4 class="form-subtitle">{{ group.title }}</h4>
+          <div v-for="column in group.columns" :key="column" class="form-group">
+            <label :for="column" class="form-label">{{ column }}</label>
+            <input :id="column" v-model="formData[column]" class="form-input" required />
+          </div>
+        </form>
+        <div v-else>
+          <div v-for="column in group.columns" :key="column" class="form-group">
+            <label :for="column" class="form-label">{{ column }}</label>
+            <input :id="column" v-model="formData[column]" class="form-input" required />
+          </div>
+        </div>
       </div>
-      <button type="submit" class="form-button" @click="handleAgregar">Agregar</button>
+      <button type="submit" class="form-button" @click="handleAgregar">➕ Agregar</button>
     </form>
   </div>
 </template>
 
 <script>
-import { ref, watch, computed } from 'vue';
-import { addUsuario, addProveedor, addVendedor, addCliente } from '../service/GestionService';
+import { ref, watch, computed, onMounted } from 'vue';
+import { getFormsData, addUsuario, addProveedor, addVendedor, addCliente } from '../service/GestionService';
+
 
 export default {
+  name: 'FormularioAgregar',
   props: {
     selectedTable: {
       type: String,
       required: true,
     },
-    columns: {
-      type: Array,
-      required: true,
-    },
   },
-  emits: ['submit','agregar-completado' ],
+  emits: ['submit', 'agregar-completado', 'volver'],
   setup(props, { emit }) {
-    //Inicializacion del forms
+    const currentView = ref('Formulario');
     const formData = ref({});
+    const columns = ref([]);
+    const foreignColumns = ref({});
+
+    const goBack = () => {
+            props.setCurrentView("gestionTablasView");
+        };
+
+
     const filteredColumns = computed(() => {
-      return props.columns.filter(column => !column.toLowerCase().startsWith('id'));
+      return columns.value.filter(column => !column.toLowerCase().startsWith('id'));
+    });
+
+    const groupedColumns = computed(() => {
+      const groups = [];
+      let currentGroup = { title: null, columns: [] };
+
+      filteredColumns.value.forEach(column => {
+        const foreignKey = Object.keys(foreignColumns.value).find(key => foreignColumns.value[key].includes(column));
+        if (foreignKey) {
+          const title = foreignKey.replace(/^Id_/, '');
+          if (currentGroup.title !== title) {
+            if (currentGroup.columns.length > 0) {
+              groups.push(currentGroup);
+            }
+            currentGroup = { title, columns: [column] };
+          } else {
+            currentGroup.columns.push(column);
+          }
+        } else {
+          currentGroup.columns.push(column);
+        }
+      });
+
+      if (currentGroup.columns.length > 0) {
+        groups.push(currentGroup);
+      }
+
+      return groups;
     });
 
     watch(filteredColumns, (newColumns) => {
@@ -45,156 +92,146 @@ export default {
       emit('submit', { ...formData.value });
     };
 
-    const handleAgregar = () => {
-      try{  
+    const crearForms = async () => {
+      try {
+        const response = await getFormsData(props.selectedTable);
+        const data = response.data;
+        if (data) {
+          columns.value = data.columns.filter(column => !column.toLowerCase().startsWith('id'));
+          foreignColumns.value = data.foreignColumns || {};
+          formData.value = {};
+
+          data.columns.forEach(column => {
+            if (data.foreignColumns && data.foreignColumns[column]) {
+              data.foreignColumns[column].forEach((foreignCol, index) => {
+                if (index !== 0) {
+                  formData.value[foreignCol] = '';
+                  columns.value.push(foreignCol);
+                }
+              });
+            } else if (!column.toLowerCase().startsWith('id')) {
+              formData.value[column] = '';
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error al obtener datos de la tabla:', error);
+        alert('Error al obtener datos de la tabla');
+      }
+    };
+
+    const handleAgregar = async () => {
+      try {
         if (props.selectedTable === 'Usuarios') {
-            agregarUsuario(formData.value);
-        }else if(props.selectedTable === 'Proveedor') {
-            agregarProveedor(formData.value);
-        }else if(props.selectedTable === 'Vendedores') {
-            agregarVendedor(formData.value);
-        }else if(props.selectedTable === 'Clientes') {
-            agregarCliente(formData.value);
+          await addUsuario(formData.value);
+        } else if (props.selectedTable === 'Proveedor') {
+          await addProveedor(formData.value);
+        } else if (props.selectedTable === 'Vendedores') {
+          await addVendedor(formData.value);
+        } else if (props.selectedTable === 'Clientes') {
+          await addCliente(formData.value);
         }
         emit('agregar-completado');
-      }catch (error) {
+      } catch (error) {
         console.error('Error al agregar:', error);
         alert('Error al agregar');
       }
     };
 
-    //completado de los distonos fornms
-    const agregarUsuario = async (formData) => {
-      console.log('formData:', formData);
-      try {
-        await addUsuario(formData);
-        alert('Usuario agregado correctamente');
-      } catch (error) {
-        console.error('Error al agregar usuario:', error);
-        alert('Error al agregar usuario');
-      }
-    };
-
-    const agregarProveedor = async (formData) => {
-      console.log('formData:', formData);
-      try {
-        await addProveedor(formData);
-        alert('Proveedor agregado correctamente');
-      } catch (error) {
-        console.error('Error al agregar usuario:', error);
-        alert('Error al agregar usuario');
-      }
-    };
-
-    const agregarCliente = async (formData) => {
-      console.log('formData:', formData);
-      try {
-        await addCliente(formData);
-        alert('Cliente agregado correctamente');
-      } catch (error) {
-        console.error('Error al agregar usuario:', error);
-        alert('Error al agregar usuario');
-      }
-    };
-
-    const agregarVendedor = async (formData) => {
-      console.log('formData:', formData);
-      try {
-        await addVendedor(formData);
-        alert('Vendedor agregado correctamente');
-      } catch (error) {
-        console.error('Error al agregar usuario:', error);
-        alert('Error al agregar usuario');
-      }
-    };
-
+    onMounted(() => {
+      crearForms();
+    });
 
     return {
+      currentView,
       formData,
       filteredColumns,
+      groupedColumns,
       handleSubmit,
       handleAgregar,
-      agregarUsuario,
-      agregarProveedor,
-      agregarCliente
+      crearForms,
+      goBack
     };
   },
 };
 </script>
 
-
-
 <style scoped>
 .form-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 12px;
+  background-color: #f3f4f6;
+  border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .form-card {
-  background-color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 600px;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 15px;
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
-.two-column {
-  grid-template-columns: repeat(2, 1fr);
+.nested-form {
+  background-color: #f9fafb;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .form-title {
-  grid-column: span 2;
-  margin-bottom: 15px;
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: bold;
   text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-subtitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #4b5563;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 
 .form-label {
-  margin-bottom: 5px;
-  font-weight: 600;
+  font-weight: 500;
+  color: #374151;
 }
 
 .form-input {
-  padding: 10px;
-  border: 1px solid #ddd;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
   border-radius: 8px;
-  font-size: 1rem;
+  transition: border-color 0.3s;
 }
 
 .form-input:focus {
-  border-color: #0e1d75;
+  border-color: #6366f1;
   outline: none;
-  box-shadow: 0 0 4px rgba(14, 29, 117, 0.3);
 }
 
 .form-button {
-  padding: 10px;
-  background-color: #0e1d75;
+  padding: 12px;
+  background-color: #6366f1;
   color: white;
   border: none;
   border-radius: 8px;
   font-size: 1.2rem;
   cursor: pointer;
-  width: 100%;
-  grid-column: span 2;
+  transition: background-color 0.3s;
 }
 
 .form-button:hover {
-  background-color: #1a2f98;
+  background-color: #4f46e5;
 }
 </style>

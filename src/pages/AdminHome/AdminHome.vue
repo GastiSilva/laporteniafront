@@ -44,13 +44,12 @@
           <q-tab-panels v-model="tab" animated swipeable vertical transition-prev="jump-up" transition-next="jump-up"
   class="q-pa-md tab-content">
 
-            class="q-pa-md">
             <q-tab-panel name="remitos">
-              <RemitosView :menuCollapsed="menuCollapsed" @toggleMenu="toggleMenu" />
+                <RemitosView :menuCollapsed="menuCollapsed" @toggleMenu="toggleMenu" />
             </q-tab-panel>
 
             <q-tab-panel name="movimientos">
-              <TablasView />
+                <TablasView />
             </q-tab-panel>
 
             <q-tab-panel name="datos">
@@ -107,11 +106,12 @@ export default {
       }
     };
 
+
     return {
       splitterModel,
       tab,
       menuCollapsed,
-      toggleMenu
+      toggleMenu,
     };
   }
 };

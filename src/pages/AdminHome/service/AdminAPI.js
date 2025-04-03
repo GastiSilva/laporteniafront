@@ -6,7 +6,6 @@ export const RemitoPDFAPI = async (id) => {
     return;
   }
   try {
-    console.log(`Llamando a la API con ID: ${id}`); 
     const response = await api.get(`/generarRemito/${id}`,  { 
       responseType: 'blob', 
     });
