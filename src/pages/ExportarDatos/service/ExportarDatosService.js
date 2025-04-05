@@ -34,7 +34,7 @@ export const GenerateExcellProduccion = async () =>{
 
 export const GenerateExcellDevolucion = async () =>{
     try {
-        const response = await api.get('/exportarExcellDevolucion', {
+        const response = await api.get('/ExportarExcellDevolucion', {
             responseType: 'blob', 
         });  
         return response;
@@ -46,7 +46,7 @@ export const GenerateExcellDevolucion = async () =>{
 
 export const GenerateExcellVentas = async () =>{
     try {
-        const response = await api.get('/exportarExcellVentas', {
+        const response = await api.get('/ExportarExcellVentas', {
             responseType: 'blob', 
         });  
         return response;
@@ -91,8 +91,32 @@ export const GenerateExcellClientes = async () =>{
         throw error;
     }
 }
+
+export const GenerateExcellCompras = async () =>{
+    try {
+        const response = await api.get('/ExportarExcellCompras', {
+            responseType: 'blob', 
+        });  
+        return response;
+    } catch (error) {
+        console.error('Error al traer tablas:', error);
+        throw error;
+    }
+}
+
+export const GenerateExcellEgresos = async () =>{
+    try {
+        const response = await api.get('/ExportarExcellEgresos', {
+            responseType: 'blob', 
+        });  
+        return response;
+    } catch (error) {
+        console.error('Error al traer tablas:', error);
+        throw error;
+    }
+}
                                                                                    
 export default {
     TraerTablas, TraerTablasExport,
-    GenerateExcellProduccion, GenerateExcellDevolucion, GenerateExcellVentas, GenerateExcellProductos, GenerateExcellIngresos, GenerateExcellClientes
+    GenerateExcellProduccion, GenerateExcellDevolucion, GenerateExcellVentas, GenerateExcellProductos, GenerateExcellIngresos, GenerateExcellClientes, GenerateExcellCompras, GenerateExcellEgresos
 };

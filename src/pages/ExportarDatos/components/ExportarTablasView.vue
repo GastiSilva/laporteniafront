@@ -47,6 +47,11 @@ export default {
                 });
                 return filteredRow;
                 });
+
+                // Ordenar por la columna "Fecha" si existe
+                // if (columns.value.includes('Fecha')) {
+                // rows.value.sort((a, b) => new Date(b.Fecha) - new Date(a.Fecha));
+                // }
             }
             } catch (error) {
             console.error('Error fetching data:', error);

@@ -63,11 +63,10 @@
 
           <div class="row q-col-gutter-md">
             <div class="col-5">
-              <q-input v-model="precioUnitario" label="Precio Unitario" type="text" outlined class="q-ma-xs"
+              <q-input v-model="precioUnitario" label="Precio Unitario" type="number" outlined class="q-ma-xs"
                 :error="!precioUnitario && errorIntento" dense />
             </div>
             <div class="col-5">
-              <!-- Subtotal calculado automáticamente -->
               <q-input v-model="subtotal" label="Sub Total" type="number" outlined class="q-ma-xs" readonly dense />
             </div>
             <div class="col-2">
