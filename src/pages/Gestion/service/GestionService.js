@@ -1,14 +1,21 @@
 import { api } from 'boot/axios';
 
-export const getTableData = async (tableName) => {
+export const getTableData = async (tableName, fechaDesde = null, fechaHasta = null) => {
     try {
-        const response = await api.get(`/datosTablas/${tableName}`);
+        const params = {};
+        if (fechaDesde && fechaHasta) {
+            params.fechaDesde = fechaDesde;
+            params.fechaHasta = fechaHasta;
+        }
+
+        const response = await api.get(`/datosTablas/${tableName}`, { params });
         return response;
     } catch (error) {
         console.error(`Error fetching data from table ${tableName}:`, error);
         throw error;
     }
 };
+
 
 export const getFormsData = async (tableName) => {
     try {

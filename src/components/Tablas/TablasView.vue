@@ -209,6 +209,7 @@ export default {
                 return;
             }
             try {
+                console.log("addedProducts.value", addedProducts.value);
                 const productos = addedProducts.value.map(
                     ({ producto, cantidad, fecha }) => ({
                         nombre: producto,

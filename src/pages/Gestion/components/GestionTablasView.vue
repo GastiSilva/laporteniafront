@@ -1,7 +1,7 @@
 <template>
     <div v-if="currentView === 'gestionTablasView'">
         <q-card-actions align="right">
-            <q-btn v-if="selectedTable" label="Agregar" color="primary" icon="add" @click="currentView = 'formularioAgregar'" :disable="permitirAgregar" />
+            <q-btn v-if="selectedTable" label="Agregar" color="primary" icon="add" @click="consularTabla" :disable="permitirAgregar" />
             <q-btn v-if="selectedTable" label="Eliminar" color="primary" icon="remove" @click="handleEliminar" />
         </q-card-actions>
         <table>
@@ -29,17 +29,21 @@
     </div>
     <FormularioAgregar v-if="currentView === 'formularioAgregar'" :selectedTable="selectedTable" :columns="columns"
          @submit="handleSubmit" @agregar-completado="volverAGestion"   @volver="volverAGestion" />
+    <FormularioCompras v-if="currentView === 'formularioCompras'" :selectedTable="selectedTable" :columns="columns"
+         @submit="handleSubmit"  />     
 </template>
 
 <script>
 import { ref, onMounted, watch, computed } from 'vue';
-import { getTableData, deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor } from '../service/GestionService';
+import { getTableData, deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor, getCompraFormData } from '../service/GestionService';
 import FormularioAgregar from './FormularioAgregar.vue';
+import FormularioCompras from './FormularioCompras.vue';
 
 export default {
     name: 'GestionTablasView',
     components: {
-        FormularioAgregar
+        FormularioAgregar,
+        FormularioCompras
     },
     props: {
         selectedTable: {
@@ -48,7 +52,7 @@ export default {
         }
     },
     setup(props) {
-        const currentView = ref('gestionTablas');
+        const currentView = ref('gestionTablasView');
         const columns = ref([]);
         const rows = ref([]);
         const filaEditada = ref(null);
@@ -61,7 +65,6 @@ export default {
             try {
                 const response = await getTableData(props.selectedTable);
                 const data = response.data;
-                console.log('Data:', data);
                 if (data.length > 0) {
                     columns.value = Object.keys(data[0]).filter(column => column !== 'createdAt' && column !== 'updatedAt');
                     rows.value = data.map(row => {
@@ -112,15 +115,40 @@ export default {
             return (props.selectedTable === 'Devolucion' || props.selectedTable === 'VentasMercaderia' || props.selectedTable === 'Produccion' || props.selectedTable === 'MateriaPrima');
         });
 
+        const consularTabla = () => {
+            if( props.selectedTable === 'Compras') {
+                currentView.value = 'formularioCompras';
+            } else{
+                currentView.value = 'formularioAgregar';
+            }
+        };
+
         watch(() => props.selectedTable, () => {
             obtenerDatosTablas();
             currentView.value = 'gestionTablasView';
+            if(props.selectedTable === 'Compras'){
+                currentView.value = 'formularioCompras';
+            }
         });
 
         const volverAGestion = () => {
             currentView.value = 'gestionTablasView';
             obtenerDatosTablas();
         };
+
+        const logInitialData = async () => {
+            try {
+            const response = await getCompraFormData();
+            console.log('Initial Data:', response.data);
+            } catch (error) {
+            console.error('Error fetching initial data:', error);
+            }
+        };
+
+        onMounted(() => {
+            obtenerDatosTablas();
+            logInitialData();
+        });
 
         const handleEliminar = () => {
             if (props.selectedTable === 'Produccion') {
@@ -224,6 +252,7 @@ export default {
             rows,
             currentView,
             getTableData,
+            consularTabla,
             esEditable,
             permitirEditar,
             permitirAgregar,

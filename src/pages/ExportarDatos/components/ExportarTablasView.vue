@@ -3,7 +3,8 @@
         <table>
             <thead>
                 <tr>
-                    <th v-for="(column, index) in columns" :key="index" style="background-color: #0e1d75; color: white;">{{ column }}</th>
+                    <th v-for="(column, index) in columns" :key="index"
+                        style="background-color: #0e1d75; color: white;">{{ column }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -24,6 +25,14 @@ export default {
         selectedTable: {
             type: String,
             required: true
+        },
+        fechaDesde: {
+            type: String,
+            default: null
+        },
+        fechaHasta: {
+            type: String,
+            default: null
         }
     },
     setup(props) {
@@ -32,35 +41,34 @@ export default {
 
         const obtenerDatosTablas = async () => {
             try {
-            const response = await getTableData(props.selectedTable);
-            const data = response.data;         
-            if (data.length > 0) {
-                columns.value = Object.keys(data[0]).filter(column => column !== 'createdAt' && column !== 'updatedAt');
-                rows.value = data.map(row => {
-                const filteredRow = {};
-                columns.value.forEach(column => {
-                    if (typeof row[column] === 'boolean') {
-                    filteredRow[column] = row[column] ? '✔' : '✘';
-                    } else {
-                    filteredRow[column] = row[column];
-                    }
-                });
-                return filteredRow;
-                });
+                const response = await getTableData(props.selectedTable, props.fechaDesde, props.fechaHasta);
+                const data = response.data;
 
-                // Ordenar por la columna "Fecha" si existe
-                // if (columns.value.includes('Fecha')) {
-                // rows.value.sort((a, b) => new Date(b.Fecha) - new Date(a.Fecha));
-                // }
-            }
+                if (data.length > 0) {
+                    columns.value = Object.keys(data[0]).filter(column => column !== 'createdAt' && column !== 'updatedAt');
+                    rows.value = data.map(row => {
+                        const filteredRow = {};
+                        columns.value.forEach(column => {
+                            filteredRow[column] = typeof row[column] === 'boolean' ? (row[column] ? '✔' : '✘') : row[column];
+                        });
+                        return filteredRow;
+                    });
+                }
             } catch (error) {
-            console.error('Error fetching data:', error);
+                console.error('Error fetching data:', error);
             }
         };
+
 
         watch(() => props.selectedTable, () => {
             obtenerDatosTablas();
         });
+
+
+        watch([() => props.fechaDesde, () => props.fechaHasta], () => {
+            obtenerDatosTablas();
+        });
+
 
         onMounted(() => {
             obtenerDatosTablas();
@@ -81,7 +89,8 @@ table {
     border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
     border: 1px solid #ddd;
     padding: 8px;
 }

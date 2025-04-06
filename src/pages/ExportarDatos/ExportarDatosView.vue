@@ -41,7 +41,8 @@
         </div>
         <div class="row" v-if="selectedTable">
             <div class="col-12">
-                <ExportarTablasView :selected-table="selectedTable" />
+                <ExportarTablasView :selected-table="selectedTable" :fecha-desde="fechaDesde"
+                :fecha-hasta="fechaHasta" />
             </div>
         </div>
     </div>
@@ -104,6 +105,8 @@ export default {
         watch (selectedTable, (newValue) => {
             if (newValue) {
                 mostrarFechas();
+                fechaDesde.value = null;
+                fechaHasta.value = null;
             } else {
                 mostrarfecha.value = false;
             }
@@ -142,7 +145,7 @@ export default {
 
         const generarExcellProduccion = async () => {
             try {
-            const response = await GenerateExcellProduccion(selectedTable.value);
+            const response = await GenerateExcellProduccion(fechaDesde.value, fechaHasta.value);
             const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -153,19 +156,18 @@ export default {
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
             $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
-            }
-            catch (error){
+                message: 'Datos exportados correctamente',
+                color: 'green',
+                position: 'top',
+            });
+            } catch (error) {
             console.log("Error: ", error);
             }
         };
 
         const generarExcellDevolucion = async () => {
             try {
-            const response = await GenerateExcellDevolucion(selectedTable.value);
+            const response = await GenerateExcellDevolucion(fechaDesde.value, fechaHasta.value);
             const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -188,7 +190,7 @@ export default {
 
         const generarExcellVentasMercaderia = async () => {
             try { 
-            const response = await GenerateExcellVentas(selectedTable.value);
+            const response = await GenerateExcellVentas(fechaDesde.value, fechaHasta.value);
             const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -198,6 +200,11 @@ export default {
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
+            $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
             }
             catch (error){
             console.log("Error: ", error);
@@ -229,7 +236,7 @@ export default {
 
         const generarExcellIngresos = async () => {
             try { 
-            const response = await GenerateExcellIngresos(selectedTable.value);
+            const response = await GenerateExcellIngresos(fechaDesde.value, fechaHasta.value);
             const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -275,7 +282,7 @@ export default {
 
         const generarExcellCompras = async () => {
             try { 
-            const response = await GenerateExcellCompras(selectedTable.value);
+            const response = await GenerateExcellCompras(fechaDesde.value, fechaHasta.value);
             const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -295,9 +302,10 @@ export default {
             console.log("Error: ", error);
             }
         };
+
         const generarExcellEgresos = async () => {
             try { 
-            const response = await GenerateExcellEgresos(selectedTable.value);
+            const response = await GenerateExcellEgresos(fechaDesde.value, fechaHasta.value);
             const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
