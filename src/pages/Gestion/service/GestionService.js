@@ -37,6 +37,26 @@ export const getCompraFormData = async () =>{
     }
 }
 
+export const getClientes = async () => {
+    try {
+        const response = await api.get('/clientes');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching clientes:', error);
+        throw error;
+    }
+}
+
+export const getProveedores = async () => {
+    try {
+        const response = await api.get('/proveedores');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching proveedores:', error);
+        throw error;
+    }
+}
+
 //METODOS AGREGAR
 export const addUsuario = async ({ Usuario, Contrasenia, Mail }) => {
     try {
@@ -91,7 +111,34 @@ export const addCliente = async ({ Nombre, Cuil }) => {
     }
 };
 
+export const addCompra = async ({ compra, materiaPrima, estadoId }) => {
+    try {
+      const response = await api.post('/compras', {
+        compra,
+        materiaPrima,
+        estadoId
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error al guardar la compra:', error)
+      throw error
+    }
+  }
 
+  export const addIvaVentas = async ({ ivaVenta, cliente, proveedor }) => {
+    try {
+      const response = await api.post('/GuardarIvaVentas', {
+        ivaVenta,
+        cliente,
+        proveedor
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error al guardar IVA Venta:', error)
+      throw error
+    }
+  }
+  
 //METODOS ELIMINAR 
 export const deleteProduccion = async (id, cantidad) => {
     try {
@@ -152,7 +199,7 @@ export const deleteCliente = async (id) => {
 
 
 export default {
-    getTableData , getFormsData, getCompraFormData, 
+    getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, 
     deleteProduccion, deleteVentas,deleteCliente, deleteProveedor, deleteVendedor,
-    addUsuario, addProveedor, addVendedor, addCliente
+    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas
     };

@@ -259,8 +259,6 @@ export default {
             }
         };
 
-
-
         const handleGuardar = () =>{
             if(selectedSection.value === "Producción"){
                 EnviarDatosProduccion();

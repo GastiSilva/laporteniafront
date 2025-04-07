@@ -31,6 +31,8 @@
          @submit="handleSubmit" @agregar-completado="volverAGestion"   @volver="volverAGestion" />
     <FormularioCompras v-if="currentView === 'formularioCompras'" :selectedTable="selectedTable" :columns="columns"
          @submit="handleSubmit"  />     
+    <FormularioIvaVentas v-if="currentView === 'formularioIvaVentas'" :selectedTable="selectedTable" :columns="columns"  @volver="volverAGestion"
+         @submit="handleSubmit"  />     
 </template>
 
 <script>
@@ -38,12 +40,15 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { getTableData, deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor, getCompraFormData } from '../service/GestionService';
 import FormularioAgregar from './FormularioAgregar.vue';
 import FormularioCompras from './FormularioCompras.vue';
+import FormularioIvaVentas from './FormularioIvaVentas.vue';
+
 
 export default {
     name: 'GestionTablasView',
     components: {
         FormularioAgregar,
-        FormularioCompras
+        FormularioCompras,
+        FormularioIvaVentas
     },
     props: {
         selectedTable: {
@@ -63,24 +68,34 @@ export default {
 
         const obtenerDatosTablas = async () => {
             try {
-                const response = await getTableData(props.selectedTable);
-                const data = response.data;
-                if (data.length > 0) {
-                    columns.value = Object.keys(data[0]).filter(column => column !== 'createdAt' && column !== 'updatedAt');
-                    rows.value = data.map(row => {
-                        const filasFiltradas = {};
-                        columns.value.forEach(column => {
-                            filasFiltradas[column] = row[column];
-                        });
-                        return filasFiltradas;
-                    });
-                } else {
-                    // Si no hay datos, solo establece los encabezados de las columnas
-                    columns.value = data.columns;
-                    rows.value = [];
+            const response = await getTableData(props.selectedTable);
+            const data = response.data;
+            if (data.length > 0) {
+                columns.value = Object.keys(data[0]).filter((column, index) => {
+                if (index === 0) {
+                    return true; // Siempre incluir la primera columna
                 }
+                return !column.toLowerCase().startsWith('id_'); // Excluir columnas que comiencen con 'id_'
+                });
+                rows.value = data.map(row => {
+                const filasFiltradas = {};
+                columns.value.forEach(column => {
+                    filasFiltradas[column] = row[column];
+                });
+                return filasFiltradas;
+                });
+            } else {
+                // Si no hay datos, solo establece los encabezados de las columnas
+                columns.value = data.columns.filter((column, index) => {
+                if (index === 0) {
+                    return true; // Siempre incluir la primera columna
+                }
+                return !column.toLowerCase().startsWith('id_'); // Excluir columnas que comiencen con 'id_'
+                });
+                rows.value = [];
+            }
             } catch (error) {
-                console.error('Error fetching data:', error);
+            console.error('Error fetching data:', error);
             }
         };
 
@@ -114,11 +129,16 @@ export default {
        const permitirAgregar = computed(() => {
             return (props.selectedTable === 'Devolucion' || props.selectedTable === 'VentasMercaderia' || props.selectedTable === 'Produccion' || props.selectedTable === 'MateriaPrima');
         });
+        
 
         const consularTabla = () => {
+            console.log('consularTabla', props.selectedTable);
             if( props.selectedTable === 'Compras') {
                 currentView.value = 'formularioCompras';
-            } else{
+            }else if (props.selectedTable === 'IVAVentas') {
+               
+                currentView.value = 'formularioIvaVentas';
+            }else{
                 currentView.value = 'formularioAgregar';
             }
         };
@@ -128,6 +148,8 @@ export default {
             currentView.value = 'gestionTablasView';
             if(props.selectedTable === 'Compras'){
                 currentView.value = 'formularioCompras';
+            }else if (props.selectedTable === 'IVAVentas') {
+                currentView.value = 'formularioIvaVentas';
             }
         });
 

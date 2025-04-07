@@ -3,15 +3,12 @@
         <q-card-section>
             <div class="text-h5 text-center" style="color: #0e1d75;">Agregar Compra</div>
         </q-card-section>
-
-        <q-separator />
-
         <q-card-section>
             <q-form @submit.prevent="guardarCompra">
                 <!-- 🧾 Datos de la Compra -->
                 <div class="text-subtitle1 text-bold text-secondary q-mb-md">Datos de la Compra</div>
 
-                <q-input outlined v-model="compra.Fecha" label="Fecha" type="datetime-local" class="q-mb-md"  />
+                <q-input outlined v-model="compra.Fecha" label="Fecha" type="datetime-local" class="q-mb-md" />
 
                 <div class="row q-col-gutter-md">
                     <q-input outlined v-model.number="compra.Cantidad" label="Cantidad" type="number" class="col" />
@@ -23,11 +20,11 @@
 
                 <q-input outlined v-model.number="compra.Importe" label="Importe" type="number" class="q-mb-md" />
 
-                <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined class="q-ma-xs" 
-                clearable :error="!selectedEstado && errorIntento" />
+                <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined class="q-ma-xs"
+                    clearable :error="!selectedEstado && errorIntento" />
 
                 <!-- 🌾 Datos de Materia Prima -->
-    
+
                 <div class="text-subtitle1 text-bold text-secondary q-mb-md">Datos de Materia Prima</div>
 
                 <q-input outlined v-model="materiaPrima.Nombre" label="Nombre" class="q-mb-md" />
@@ -60,6 +57,7 @@
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { obtenerEstados } from 'src/components/Remitos/service/RemitosService'
+import { addCompra } from '../service/GestionService';
 
 export default {
     name: 'FormularioCompras',
@@ -90,29 +88,66 @@ export default {
         })
 
         const cargarEstados = async () => {
-      try {
-        const estados = await obtenerEstados();
-        estadoOptions.value = estados.map(estado => ({
-          label: estado.Estado,
-          value: estado.Id_Estado,
-        }));
-      } catch (error) {
-        console.error('Error al cargar los estados:', error);
-        errorMessage.value = 'Error al cargar los estados.';
-      }
-    };
+            try {
+                const estados = await obtenerEstados();
+                estadoOptions.value = estados.map(estado => ({
+                    label: estado.Estado,
+                    value: estado.Id_Estado,
+                }));
+            } catch (error) {
+                console.error('Error al cargar los estados:', error);
+                errorMessage.value = 'Error al cargar los estados.';
+            }
+        };
 
         function guardarCompra() {
-            console.log('Compra:', compra.value)
-            console.log('Materia Prima:', materiaPrima.value)
+            // Validación rápida del estado
+            if (!selectedEstado.value) {
+                $q.notify({
+                    type: 'warning',
+                    message: 'Seleccioná un estado antes de guardar'
+                })
+                return
+            }
 
-            $q.notify({
-                type: 'positive',
-                message: 'Datos guardados con éxito'
-            })
+            // Armamos el payload completo
+            const payload = {
+                compra: {
+                    Fecha: compra.value.Fecha,
+                    Cantidad: compra.value.Cantidad,
+                    PrecioUnit: compra.value.PrecioUnit,
+                    Factura_N: compra.value.Factura_N,
+                    Importe: compra.value.Importe
+                },
+                materiaPrima: {
+                    Nombre: materiaPrima.value.Nombre,
+                    Fecha: materiaPrima.value.Fecha,
+                    Marca: materiaPrima.value.Marca,
+                    Cantidad: materiaPrima.value.Cantidad,
+                    PrecioUnitario: materiaPrima.value.PrecioUnitario,
+                    PrecioTotal: materiaPrima.value.PrecioTotal
+                },
+                estadoId: selectedEstado.value
+            }
 
-            limpiarFormulario()
+            // Enviamos al backend
+            addCompra(payload)
+                .then(() => {
+                    $q.notify({
+                        type: 'positive',
+                        message: 'Compra guardada con éxito'
+                    })
+                    limpiarFormulario()
+                })
+                .catch(error => {
+                    console.error('Error al guardar la compra:', error)
+                    $q.notify({
+                        type: 'negative',
+                        message: 'Ocurrió un error al guardar la compra'
+                    })
+                })
         }
+
 
         function limpiarFormulario() {
             compra.value = {
