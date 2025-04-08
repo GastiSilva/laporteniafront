@@ -33,6 +33,8 @@
          @submit="handleSubmit"  />     
     <FormularioIvaVentas v-if="currentView === 'formularioIvaVentas'" :selectedTable="selectedTable" :columns="columns"  @volver="volverAGestion"
          @submit="handleSubmit"  />     
+    <FormularioEgresos v-if="currentView === 'formularioEgresos'" :selectedTable="selectedTable" :columns="columns"  @volver="volverAGestion"/>
+    <FormularioGastos v-if="currentView === 'formularioGastos'" :selectedTable="selectedTable" :columns="columns"  @volver="volverAGestion"/>
 </template>
 
 <script>
@@ -41,14 +43,17 @@ import { getTableData, deleteProduccion, deleteVentas, deleteCliente, deleteProv
 import FormularioAgregar from './FormularioAgregar.vue';
 import FormularioCompras from './FormularioCompras.vue';
 import FormularioIvaVentas from './FormularioIvaVentas.vue';
-
+import FormularioEgresos from './FormularioEgresos.vue';
+import FormularioGastos from './FormularioGastos.vue';
 
 export default {
     name: 'GestionTablasView',
     components: {
         FormularioAgregar,
         FormularioCompras,
-        FormularioIvaVentas
+        FormularioIvaVentas,
+        FormularioEgresos,
+        FormularioGastos
     },
     props: {
         selectedTable: {
@@ -135,10 +140,14 @@ export default {
             console.log('consularTabla', props.selectedTable);
             if( props.selectedTable === 'Compras') {
                 currentView.value = 'formularioCompras';
-            }else if (props.selectedTable === 'IVAVentas') {
-               
+            }else if (props.selectedTable === 'IVAVentas') { 
                 currentView.value = 'formularioIvaVentas';
-            }else{
+            }else if(props.selectedTable === 'Egresos'){
+                currentView.value = 'formularioEgresos';
+            }else if(props.selectedTable === 'Gastos'){
+                currentView.value = 'formularioGastos';
+            }
+            else{
                 currentView.value = 'formularioAgregar';
             }
         };

@@ -57,6 +57,27 @@ export const getProveedores = async () => {
     }
 }
 
+export const getEgresos = async () => {
+    try {
+        const response = await api.get('/egresos');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching egresos:', error);
+        throw error;
+    }
+}
+
+
+export const getTipoGastos = async () => {
+    try {
+        const response = await api.get('/tipogastos');
+        return response;
+    } catch (error) {
+        console.error('Error fetching tipo gastos:', error);
+        throw error;
+    }
+}
+
 //METODOS AGREGAR
 export const addUsuario = async ({ Usuario, Contrasenia, Mail }) => {
     try {
@@ -123,7 +144,7 @@ export const addCompra = async ({ compra, materiaPrima, estadoId }) => {
       console.error('Error al guardar la compra:', error)
       throw error
     }
-  }
+}
 
   export const addIvaVentas = async ({ ivaVenta, cliente, proveedor }) => {
     try {
@@ -138,7 +159,32 @@ export const addCompra = async ({ compra, materiaPrima, estadoId }) => {
       throw error
     }
   }
-  
+
+export const addEgresos = async ({ Fecha, Concepto, Comprobante, ImporteTotal }) => {
+    try {
+        const response = await api.post('/GuardarEgreso', {
+            Fecha,
+            Concepto,
+            Comprobante,
+            ImporteTotal
+        });
+        return response;
+    } catch (error) {
+        console.error('Error al agregar egresos:', error);
+        throw error;
+    }
+};
+
+export const addGastos = async (gasto) => {
+    try {
+      const response = await api.post('/GuardarGastos', gasto);
+      return response.data;
+    } catch (error) {
+      console.error('Error al guardar gasto:', error);
+      throw error;
+    }
+  }
+
 //METODOS ELIMINAR 
 export const deleteProduccion = async (id, cantidad) => {
     try {
@@ -199,7 +245,7 @@ export const deleteCliente = async (id) => {
 
 
 export default {
-    getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, 
+    getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, getEgresos, getTipoGastos,
     deleteProduccion, deleteVentas,deleteCliente, deleteProveedor, deleteVendedor,
-    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas
+    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas, addEgresos, addGastos
     };

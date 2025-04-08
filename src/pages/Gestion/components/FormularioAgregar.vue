@@ -29,7 +29,7 @@
 
 <script>
 import { ref, watch, computed, onMounted } from 'vue';
-import { getFormsData, addUsuario, addProveedor, addVendedor, addCliente } from '../service/GestionService';
+import { getFormsData, addUsuario, addProveedor, addVendedor, addCliente, addEgresos } from '../service/GestionService';
 
 
 export default {
@@ -128,6 +128,8 @@ export default {
           await addVendedor(formData.value);
         } else if (props.selectedTable === 'Clientes') {
           await addCliente(formData.value);
+        }else if( props.selectedTable === 'Egresos') {
+          await addEgresos(formData.value);
         }
         emit('agregar-completado');
       } catch (error) {
