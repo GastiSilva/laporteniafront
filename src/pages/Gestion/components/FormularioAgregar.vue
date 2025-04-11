@@ -1,32 +1,35 @@
 <template>
-  <q-btn flat label="Volver" text-color="white" class="q-ma-md" @click="$emit('volver')" rounded
-   style="background-color:#0e1d75;" />
-  <div class="form-container">
-    <form @submit.prevent="handleSubmit" class="form-card">
-      <h2 class="form-title">Agregar Datos</h2>
-      <div v-for="(group, index) in groupedColumns" :key="index" class="form-group-container">
-        <form v-if="group.title" class="nested-form">
-          <h4 class="form-subtitle">{{ group.title }}</h4>
-          <div v-for="column in group.columns" :key="column" class="form-group">
-            <label :for="column" class="form-label">{{ column }}</label>
-            <input :id="column" v-model="formData[column]" class="form-input" required />
-          </div>
-        </form>
-        <div v-else>
-          <div v-for="column in group.columns" :key="column" class="form-group">
-            <label :for="column" class="form-label">{{ column }}</label>
-            <input :id="column" v-model="formData[column]" class="form-input" required />
+  <q-card class="q-pa-lg q-mx-auto shadow-2" style="max-width: 900px; border-radius: 12px;">
+    <q-card-section>
+      <div class="text-h5 text-center" style="color: #0e1d75;">Agregar Datos</div>
+    </q-card-section>
+    <q-card-section>
+      <q-form @submit.prevent="handleSubmit">
+        <div v-for="(group, index) in groupedColumns" :key="index" class="q-mb-md">
+          <q-card v-if="group.title" flat bordered class="q-pa-md q-mb-md">
+            <div class="text-subtitle1 text-bold text-secondary">{{ group.title }}</div>
+            <div v-for="column in group.columns" :key="column" class="q-mb-md">
+              <q-input outlined v-model="formData[column]" :label="column" />
+            </div>
+          </q-card>
+          <div v-else>
+            <div v-for="column in group.columns" :key="column" class="q-mb-md">
+              <q-input outlined v-model="formData[column]" :label="column" />
+            </div>
           </div>
         </div>
-      </div>
-      <button type="submit" class="form-button" @click="handleAgregar">➕ Agregar</button>
-    </form>
-  </div>
+        <div class="row justify-center q-gutter-md">
+          <q-btn label="Agregar" type="submit" color="primary" class="q-px-lg" @click="handleAgregar" />
+          <q-btn label="Volver" flat color="negative" @click="$emit('volver')" />
+        </div>
+      </q-form>
+    </q-card-section>
+  </q-card>
 </template>
 
 <script>
 import { ref, watch, computed, onMounted } from 'vue';
-import { getFormsData, addUsuario, addProveedor, addVendedor, addCliente } from '../service/GestionService';
+import { getFormsData, addUsuario, addProveedor, addVendedor, addCliente, addEgresos } from '../service/GestionService';
 
 
 export default {
@@ -43,11 +46,6 @@ export default {
     const formData = ref({});
     const columns = ref([]);
     const foreignColumns = ref({});
-
-    const goBack = () => {
-            props.setCurrentView("gestionTablasView");
-        };
-
 
     const filteredColumns = computed(() => {
       return columns.value.filter(column => !column.toLowerCase().startsWith('id'));
@@ -130,6 +128,8 @@ export default {
           await addVendedor(formData.value);
         } else if (props.selectedTable === 'Clientes') {
           await addCliente(formData.value);
+        }else if( props.selectedTable === 'Egresos') {
+          await addEgresos(formData.value);
         }
         emit('agregar-completado');
       } catch (error) {
@@ -150,7 +150,6 @@ export default {
       handleSubmit,
       handleAgregar,
       crearForms,
-      goBack
     };
   },
 };
