@@ -1,5 +1,6 @@
 <template>
     <q-card class="q-pa-lg q-mx-auto shadow-2" style="max-width: 900px; border-radius: 12px;">
+        <q-btn label="Volver" flat rounded style="background-color: #0e1d75; color: white;" @click="$emit('volver')" />
         <q-card-section>
             <div class="text-h5 text-center" style="color: #0e1d75;">Agregar Compra</div>
         </q-card-section>
@@ -61,6 +62,7 @@ import { addCompra } from '../service/GestionService';
 
 export default {
     name: 'FormularioCompras',
+    emits: ['volver'],
     setup() {
         const $q = useQuasar()
         const compra = ref({

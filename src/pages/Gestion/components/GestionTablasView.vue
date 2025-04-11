@@ -1,8 +1,9 @@
 <template>
     <div v-if="currentView === 'gestionTablasView'">
         <q-card-actions align="right">
-            <q-btn v-if="selectedTable" label="Agregar" color="primary" icon="add" @click="consularTabla" :disable="permitirAgregar" />
-            <q-btn v-if="selectedTable" label="Eliminar" color="primary" icon="remove" @click="handleEliminar" />
+            <q-btn v-if="selectedTable && !permitirAgregar" label="Agregar" color="primary" icon="add" @click="consularTabla" />
+            <q-btn v-if="selectedTable && !permitirEliminar" label="Eliminar" color="primary" icon="remove" @click="handleEliminar" />
+            <q-btn v-if="selectedTable && !permitirModificar" label="Modificar" color="primary" icon="edit" @click="handleModificar" />
         </q-card-actions>
         <table>
             <thead>
@@ -28,23 +29,29 @@
         </table>
     </div>
     <FormularioAgregar v-if="currentView === 'formularioAgregar'" :selectedTable="selectedTable" :columns="columns"
-         @submit="handleSubmit" @agregar-completado="volverAGestion"   @volver="volverAGestion" />
+        @submit="handleSubmit" @agregar-completado="volverAGestion" @volver="volverAGestion" />
     <FormularioCompras v-if="currentView === 'formularioCompras'" :selectedTable="selectedTable" :columns="columns"
-         @submit="handleSubmit"  />     
-    <FormularioIvaVentas v-if="currentView === 'formularioIvaVentas'" :selectedTable="selectedTable" :columns="columns"  @volver="volverAGestion"
-         @submit="handleSubmit"  />     
-    <FormularioEgresos v-if="currentView === 'formularioEgresos'" :selectedTable="selectedTable" :columns="columns"  @volver="volverAGestion"/>
-    <FormularioGastos v-if="currentView === 'formularioGastos'" :selectedTable="selectedTable" :columns="columns"  @volver="volverAGestion"/>
+        @submit="handleSubmit" @volver="volverAGestion" />
+    <FormularioIvaVentas v-if="currentView === 'formularioIvaVentas'" :selectedTable="selectedTable" :columns="columns"
+        @volver="volverAGestion" @submit="handleSubmit" />
+    <FormularioIvaCompras v-if="currentView === 'formularioIvaCompras'" :selectedTable="selectedTable"
+        :columns="columns" @volver="volverAGestion" />
+    <FormularioEgresos v-if="currentView === 'formularioEgresos'" :selectedTable="selectedTable" :columns="columns"
+        @volver="volverAGestion" />
+    <FormularioGastos v-if="currentView === 'formularioGastos'" :selectedTable="selectedTable" :columns="columns"
+        @volver="volverAGestion" />
 </template>
 
 <script>
 import { ref, onMounted, watch, computed } from 'vue';
-import { getTableData, deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor, getCompraFormData } from '../service/GestionService';
+import { getTableData, deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor, deleteDevolucion, getCompraFormData, editIngreso, editEgreso } from '../service/GestionService';
 import FormularioAgregar from './FormularioAgregar.vue';
 import FormularioCompras from './FormularioCompras.vue';
 import FormularioIvaVentas from './FormularioIvaVentas.vue';
 import FormularioEgresos from './FormularioEgresos.vue';
 import FormularioGastos from './FormularioGastos.vue';
+import FormularioIvaCompras from './FormularioIvaCompras.vue';
+import { useQuasar } from 'quasar';
 
 export default {
     name: 'GestionTablasView',
@@ -52,8 +59,9 @@ export default {
         FormularioAgregar,
         FormularioCompras,
         FormularioIvaVentas,
+        FormularioIvaCompras,
         FormularioEgresos,
-        FormularioGastos
+        FormularioGastos,
     },
     props: {
         selectedTable: {
@@ -62,6 +70,7 @@ export default {
         }
     },
     setup(props) {
+        const $q = useQuasar();
         const currentView = ref('gestionTablasView');
         const columns = ref([]);
         const rows = ref([]);
@@ -73,34 +82,73 @@ export default {
 
         const obtenerDatosTablas = async () => {
             try {
-            const response = await getTableData(props.selectedTable);
-            const data = response.data;
-            if (data.length > 0) {
-                columns.value = Object.keys(data[0]).filter((column, index) => {
-                if (index === 0) {
-                    return true; // Siempre incluir la primera columna
+                const response = await getTableData(props.selectedTable);
+                const data = response.data;
+
+                if (data.length > 0) {
+                    columns.value = Object.keys(data[0]).filter((column, index) => {
+                        if (index === 0) {
+                            return true;
+                        }
+                        if (props.selectedTable === 'Ingresos' && column.toLowerCase() === 'cuit') {
+                            return false;
+                        }
+                        return !column.toLowerCase().startsWith('id_');
+                    });
+
+                    const columnasAFormatear = [
+                        'Importe',
+                        'ImporteTotal',
+                        'Total',
+                        'Neto',
+                        'IVA21',
+                        'IVA10_5',
+                        'PercIVA',
+                        'IngrBrutosRetEfect',
+                        'ConceptosNoAgravados',
+                        'Flete10_5',
+                        'PercepcionesCba',
+                        'PercepcionesIIBB',
+                        'Retenciones',
+                        'PrecioUnitario',
+                        'PrecioTotal'
+                    ];
+
+                    rows.value = data.map(row => {
+                        const filasFiltradas = {};
+                        columns.value.forEach(column => {
+                            const valor = row[column];
+
+                            if (typeof valor === 'boolean') {
+                                filasFiltradas[column] = valor ? '✔' : '✘';
+                            } else if (columnasAFormatear.includes(column)) {
+                                filasFiltradas[column] = new Intl.NumberFormat('es-AR', {
+                                    style: 'currency',
+                                    currency: 'ARS',
+                                    minimumFractionDigits: 2
+                                }).format(valor);
+                            } else {
+                                filasFiltradas[column] = valor;
+                            }
+                        });
+                        return filasFiltradas;
+                    });
+
+                } else {
+                    columns.value = data.columns.filter((column, index) => {
+                        if (index === 0) {
+                            return true;
+                        }
+                        if (props.selectedTable === 'Ingresos' && column.toLowerCase() === 'cuit') {
+                            return false;
+                        }
+                        return !column.toLowerCase().startsWith('id_');
+                    });
+                    rows.value = [];
                 }
-                return !column.toLowerCase().startsWith('id_'); // Excluir columnas que comiencen con 'id_'
-                });
-                rows.value = data.map(row => {
-                const filasFiltradas = {};
-                columns.value.forEach(column => {
-                    filasFiltradas[column] = row[column];
-                });
-                return filasFiltradas;
-                });
-            } else {
-                // Si no hay datos, solo establece los encabezados de las columnas
-                columns.value = data.columns.filter((column, index) => {
-                if (index === 0) {
-                    return true; // Siempre incluir la primera columna
-                }
-                return !column.toLowerCase().startsWith('id_'); // Excluir columnas que comiencen con 'id_'
-                });
-                rows.value = [];
-            }
+
             } catch (error) {
-            console.error('Error fetching data:', error);
+                console.error('Error fetching data:', error);
             }
         };
 
@@ -131,23 +179,36 @@ export default {
             return filaSeleccionada.value === rowIndex;
         };
 
-       const permitirAgregar = computed(() => {
+        const permitirAgregar = computed(() => {
             return (props.selectedTable === 'Devolucion' || props.selectedTable === 'VentasMercaderia' || props.selectedTable === 'Produccion' || props.selectedTable === 'MateriaPrima');
         });
-        
+
+        const permitirEliminar = computed(() => {
+            return (props.selectedTable === 'Ingresos' || props.selectedTable === 'Egresos');
+        });
+
+        const permitirModificar = computed(() => {
+            return (props.selectedTable === 'Devolucion' || props.selectedTable === 'VentasMercaderia' || props.selectedTable === 'Produccion' || props.selectedTable === 'MateriaPrima' 
+                || props.selectedTable === 'Clientes' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores'
+            );
+        });
 
         const consularTabla = () => {
             console.log('consularTabla', props.selectedTable);
-            if( props.selectedTable === 'Compras') {
+            if (props.selectedTable === 'Compras') {
                 currentView.value = 'formularioCompras';
-            }else if (props.selectedTable === 'IVAVentas') { 
+            } else if (props.selectedTable === 'IVAVentas') {
                 currentView.value = 'formularioIvaVentas';
-            }else if(props.selectedTable === 'Egresos'){
+            } else if (props.selectedTable === 'Egresos') {
                 currentView.value = 'formularioEgresos';
-            }else if(props.selectedTable === 'Gastos'){
+            } else if (props.selectedTable === 'Gastos') {
                 currentView.value = 'formularioGastos';
+            } else if (props.selectedTable === 'IVACompras') {
+                currentView.value = 'formularioIvaCompras';
+            } else if (props.selectedTable === 'IVAVentas') {
+                currentView.value = 'formularioIvaVentas';
             }
-            else{
+            else {
                 currentView.value = 'formularioAgregar';
             }
         };
@@ -155,11 +216,6 @@ export default {
         watch(() => props.selectedTable, () => {
             obtenerDatosTablas();
             currentView.value = 'gestionTablasView';
-            if(props.selectedTable === 'Compras'){
-                currentView.value = 'formularioCompras';
-            }else if (props.selectedTable === 'IVAVentas') {
-                currentView.value = 'formularioIvaVentas';
-            }
         });
 
         const volverAGestion = () => {
@@ -169,17 +225,11 @@ export default {
 
         const logInitialData = async () => {
             try {
-            const response = await getCompraFormData();
-            console.log('Initial Data:', response.data);
+                const response = await getCompraFormData();
             } catch (error) {
-            console.error('Error fetching initial data:', error);
+                console.error('Error fetching initial data:', error);
             }
         };
-
-        onMounted(() => {
-            obtenerDatosTablas();
-            logInitialData();
-        });
 
         const handleEliminar = () => {
             if (props.selectedTable === 'Produccion') {
@@ -192,6 +242,21 @@ export default {
                 eliminarProveedor();
             } else if (props.selectedTable === 'Vendedores') {
                 eliminarVendedor();
+            } else if (props.selectedTable === 'Devolucion') {
+                eliminarDevolucion();
+            } else {
+                console.error('No se puede eliminar de esta tabla.');
+            }
+        };
+
+        const handleModificar = () => {
+            if (props.selectedTable === 'Ingresos') {
+                actualizarIngreso();
+            }else if(props.selectedTable === 'Egresos'){
+                actualizarEgresos();
+            }
+            else {
+                console.error('No se puede modificar esta tabla.');
             }
         };
 
@@ -273,10 +338,67 @@ export default {
             }
         };
 
+        const eliminarDevolucion = async () => {
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idDevolucion = selectedRow.idDevolucion;
+                const cantidad = selectedRow.Cantidad;
+                try {
+                    await deleteDevolucion(idDevolucion, cantidad);
+                    obtenerDatosTablas();
+                    $q.notify({
+                        type: 'positive',
+                        message: `Se eliminó ${cantidad} de devolucion correctamente`
+                    });
+                } catch (error) {
+                    console.error('Error eliminando devolucion:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        };
+
+        const actualizarIngreso = async () => {
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idIngreso = selectedRow.id_Ingreso;
+                const importe = selectedRow.Total;
+                const estado = selectedRow.Estado;
+                try {
+                    await editIngreso(idIngreso, {
+                        Total: importe,
+                        Estado: estado
+                    });
+                    obtenerDatosTablas();
+                } catch (error) {
+                    console.error('Error modificando ingreso:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        };
+
+        const actualizarEgresos = async () => {
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idEgreso = selectedRow.Id_Egresos;
+                const importeTotal = selectedRow.ImporteTotal;
+                try {
+                    await editEgreso(idEgreso, {ImporteTotal: importeTotal});
+                    obtenerDatosTablas();
+                } catch (error) {
+                    console.error('Error modificando ingreso:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        };
 
         onMounted(() => {
             obtenerDatosTablas();
+            logInitialData();
         });
+
 
         return {
             columns,
@@ -287,6 +409,8 @@ export default {
             esEditable,
             permitirEditar,
             permitirAgregar,
+            permitirModificar,
+            permitirEliminar,
             guardarEdit,
             editValue,
             filaSeleccionada,
@@ -295,12 +419,14 @@ export default {
             volverAGestion,
             mostrarFormulario,
             //METODOS ABM
+            handleModificar,
             handleEliminar,
             eliminarProduccion,
             eliminarVentas,
             eliminarCliente,
             eliminarVendedor,
-            eliminarProveedor
+            eliminarProveedor,
+            eliminarDevolucion
         };
     }
 };

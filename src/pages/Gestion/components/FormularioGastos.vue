@@ -67,14 +67,13 @@ export default {
                 const payload = {
                     descripcion: gasto.value.descripcion,
                     Importe: gasto.value.Importe,
-                    Id_TipoGastos: gasto.value.Id_TipoGastos?.Id_TipoGastos, // 👈 solo el ID
-                    Id_Egresos: gasto.value.Id_Egresos?.Id_Egresos // 👈 solo el ID
+                    Id_TipoGastos: gasto.value.Id_TipoGastos?.Id_TipoGastos, 
+                    Id_Egresos: gasto.value.Id_Egresos?.Id_Egresos 
                 };
 
-                console.log("payload a enviar:", payload); // debug opcional
 
                 const response = await addGastos(payload);
-                console.log("respuesta del servidor:", response); // debug opcional
+                console.log("respuesta del servidor:", response); 
                 $q.notify({ type: "positive", message: "Gasto guardado correctamente" });
                 limpiarFormulario();
             } catch (error) {

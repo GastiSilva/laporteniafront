@@ -67,7 +67,6 @@ export const getEgresos = async () => {
     }
 }
 
-
 export const getTipoGastos = async () => {
     try {
         const response = await api.get('/tipogastos');
@@ -146,7 +145,7 @@ export const addCompra = async ({ compra, materiaPrima, estadoId }) => {
     }
 }
 
-  export const addIvaVentas = async ({ ivaVenta, cliente, proveedor }) => {
+export const addIvaVentas = async ({ ivaVenta, cliente, proveedor }) => {
     try {
       const response = await api.post('/GuardarIvaVentas', {
         ivaVenta,
@@ -158,7 +157,21 @@ export const addCompra = async ({ compra, materiaPrima, estadoId }) => {
       console.error('Error al guardar IVA Venta:', error)
       throw error
     }
-  }
+}
+
+export const addIvaCompras = async ({ ivaCompras, cliente, proveedor }) => {
+    try {
+      const response = await api.post('/GuardarIvaCompras', {
+        ivaCompras,
+        cliente,
+        proveedor
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error al guardar IVA Venta:', error)
+      throw error
+    }
+}
 
 export const addEgresos = async ({ Fecha, Concepto, Comprobante, ImporteTotal }) => {
     try {
@@ -183,12 +196,22 @@ export const addGastos = async (gasto) => {
       console.error('Error al guardar gasto:', error);
       throw error;
     }
-  }
+}
 
 //METODOS ELIMINAR 
 export const deleteProduccion = async (id, cantidad) => {
     try {
         const response = await api.delete(`/EliminarDeProduccion/${id}/${cantidad}`);
+        return response;
+    } catch (error) {
+        console.error(`No se pudo borrar el producto con  ${id}:`, error);
+        throw error;
+    }
+}
+
+export const deleteDevolucion = async (id, cantidad) => {
+    try {
+        const response = await api.delete(`/EliminarDeDevolucion/${id}/${cantidad}`);
         return response;
     } catch (error) {
         console.error(`No se pudo borrar el producto con  ${id}:`, error);
@@ -242,10 +265,32 @@ export const deleteCliente = async (id) => {
     }
 };
 
+//METOODOS MODIFICAR
+export const editIngreso = async (id_Ingreso, data) => {
+    try {
+        const response = await api.put(`/ingresos/${id_Ingreso}`, data);
+        return response;
+    } catch (error) {
+        console.error(`Error al modificar el ingreso con id ${id_Ingreso}:`, error);
+        throw error;
+    }
+};
+
+export const editEgreso = async (Id_Egresos, importe_total) => {
+    try {
+        const response = await api.put(`/egresos/${Id_Egresos}`, importe_total);
+        return response;
+    } catch (error) {
+        console.error(`Error al modificar el egreso con id ${Id_Egresos}:`, error);
+        throw error;
+    }
+};
+
 
 
 export default {
     getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, getEgresos, getTipoGastos,
-    deleteProduccion, deleteVentas,deleteCliente, deleteProveedor, deleteVendedor,
-    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas, addEgresos, addGastos
+    deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor, deleteDevolucion,
+    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas, addIvaCompras, addEgresos, addGastos,
+    editIngreso, editEgreso
     };
