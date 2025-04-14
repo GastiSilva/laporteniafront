@@ -44,7 +44,9 @@
 
 <script>
 import { ref, onMounted, watch, computed } from 'vue';
-import { getTableData, deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor, deleteDevolucion, getCompraFormData, editIngreso, editEgreso } from '../service/GestionService';
+import {    getTableData,getCompraFormData,
+            deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor, deleteDevolucion, deleteUsuario,
+            editIngreso, editEgreso, editIvaVentas, editventasMercaderia, editGastos} from '../service/GestionService';
 import FormularioAgregar from './FormularioAgregar.vue';
 import FormularioCompras from './FormularioCompras.vue';
 import FormularioIvaVentas from './FormularioIvaVentas.vue';
@@ -184,12 +186,12 @@ export default {
         });
 
         const permitirEliminar = computed(() => {
-            return (props.selectedTable === 'Ingresos' || props.selectedTable === 'Egresos');
+            return (props.selectedTable === 'Ingresos' || props.selectedTable === 'Egresos' || props.selectedTable === 'IVAVentas' || props.selectedTable === 'Gastos');
         });
 
         const permitirModificar = computed(() => {
-            return (props.selectedTable === 'Devolucion' || props.selectedTable === 'VentasMercaderia' || props.selectedTable === 'Produccion' || props.selectedTable === 'MateriaPrima' 
-                || props.selectedTable === 'Clientes' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores'
+            return (props.selectedTable === 'Devolucion'  || props.selectedTable === 'Produccion' || props.selectedTable === 'MateriaPrima' 
+                || props.selectedTable === 'Clientes' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores' || props.selectedTable === 'Usuarios'
             );
         });
 
@@ -244,7 +246,10 @@ export default {
                 eliminarVendedor();
             } else if (props.selectedTable === 'Devolucion') {
                 eliminarDevolucion();
-            } else {
+            } else if( props.selectedTable === 'Usuarios') {
+                eliminarUsuario();
+            } 
+            else {
                 console.error('No se puede eliminar de esta tabla.');
             }
         };
@@ -254,6 +259,12 @@ export default {
                 actualizarIngreso();
             }else if(props.selectedTable === 'Egresos'){
                 actualizarEgresos();
+            }else if(props.selectedTable === 'IVAVentas'){
+                actualizarIVAVentas();
+            }else if(props.selectedTable === 'VentasMercaderia'){
+                actualizarVentasMercaderia();
+            }else if(props.selectedTable === 'Gastos'){
+                actualizarGastos();
             }
             else {
                 console.error('No se puede modificar esta tabla.');
@@ -331,7 +342,7 @@ export default {
                     await deleteCliente(idcliente);
                     obtenerDatosTablas();
                 } catch (error) {
-                    console.error('Error eliminando produccion:', error);
+                    console.error('Error eliminando clientes:', error);
                 }
             } else {
                 console.error('No hay fila seleccionada.');
@@ -358,6 +369,21 @@ export default {
             }
         };
 
+        const eliminarUsuario = async () => {
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idusuario = selectedRow.id_Usuario;
+                try {
+                    await deleteUsuario(idusuario);
+                    obtenerDatosTablas();
+                } catch (error) {
+                    console.error('Error eliminando usuarios:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        };
+
         const actualizarIngreso = async () => {
             if (filaSeleccionada.value !== null) {
                 const selectedRow = rows.value[filaSeleccionada.value];
@@ -368,6 +394,10 @@ export default {
                     await editIngreso(idIngreso, {
                         Total: importe,
                         Estado: estado
+                    });
+                    $q.notify({
+                        type: 'positive',
+                        message: `Se modificó  correctamente`
                     });
                     obtenerDatosTablas();
                 } catch (error) {
@@ -385,6 +415,10 @@ export default {
                 const importeTotal = selectedRow.ImporteTotal;
                 try {
                     await editEgreso(idEgreso, {ImporteTotal: importeTotal});
+                    $q.notify({
+                        type: 'positive',
+                        message: `Se modificó  correctamente`
+                    });
                     obtenerDatosTablas();
                 } catch (error) {
                     console.error('Error modificando ingreso:', error);
@@ -394,6 +428,76 @@ export default {
             }
         };
 
+        const actualizarIVAVentas = async () => {
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idIvaventas = selectedRow.Id_IvaVentas;
+                const factura = selectedRow.Factura;
+                const facturaN = selectedRow.Factura_N;
+                const neto = selectedRow.Neto;
+                const iva21 = selectedRow.IVA21;
+                const iva10_5 = selectedRow.IVA10_5;
+                const retenciones = selectedRow.Retenciones;
+                const importetotal = selectedRow.ImporteTotal;
+                try {
+                    await editIvaVentas(idIvaventas, {
+                        Factura: factura,
+                        Factura_N: facturaN,
+                        Neto: neto,
+                        IVA21: iva21,
+                        IVA10_5: iva10_5,
+                        Retenciones: retenciones,
+                        ImporteTotal: importetotal
+                    });
+                    obtenerDatosTablas();
+                } catch (error) {
+                    console.error('Error modificando ingreso:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        };
+
+        const actualizarVentasMercaderia = async () =>{
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idVentasMercaderia = selectedRow.Id_VentaMercaderia;
+                const cantidad = selectedRow.Cantidad;
+                try {
+                    await editventasMercaderia(idVentasMercaderia, {nuevaCantidad: Number(cantidad)});
+                    $q.notify({
+                        type: 'positive',
+                        message: `Se modificó  correctamente`
+                    });
+                    obtenerDatosTablas();
+                } catch (error) {
+                    console.error('Error modificando ventas:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        }
+
+        const actualizarGastos = async () => {
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idGasto= selectedRow.Id_Gastos;
+                const importe = selectedRow.Importe;
+                try {
+                    await editGastos(idGasto, {Importe: importe});
+                    $q.notify({
+                        type: 'positive',
+                        message: `Se modificó  correctamente`
+                    });
+                    obtenerDatosTablas();
+                } catch (error) {
+                    console.error('Error modificando ingreso:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        };
+        
         onMounted(() => {
             obtenerDatosTablas();
             logInitialData();
@@ -426,7 +530,8 @@ export default {
             eliminarCliente,
             eliminarVendedor,
             eliminarProveedor,
-            eliminarDevolucion
+            eliminarDevolucion,
+            eliminarUsuario
         };
     }
 };

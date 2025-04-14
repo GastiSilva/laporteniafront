@@ -16,7 +16,6 @@ export const getTableData = async (tableName, fechaDesde = null, fechaHasta = nu
     }
 };
 
-
 export const getFormsData = async (tableName) => {
     try {
         const response = await api.get(`/datosTablasForms/${tableName}`);
@@ -265,6 +264,19 @@ export const deleteCliente = async (id) => {
     }
 };
 
+export const deleteUsuario = async (id) => {
+    try {
+        const response = await api.delete('/removeUsuario', {
+            data: { id_Usuario: id } 
+        });
+        return response;
+    } catch (error) {
+        console.error(`No se pudo borrar el usuario con ${id}:`, error);
+        throw error;
+    }
+};
+
+
 //METOODOS MODIFICAR
 export const editIngreso = async (id_Ingreso, data) => {
     try {
@@ -286,11 +298,40 @@ export const editEgreso = async (Id_Egresos, importe_total) => {
     }
 };
 
+export const editIvaVentas = async (Id_IvaVentas, data) => {
+    try {
+        const response = await api.put(`/ivaventas/${Id_IvaVentas}`, data);
+        return response;
+    } catch (error) {
+        console.error(`Error al modificar el egreso con id ${Id_IvaVentas}:`, error);
+        throw error;
+    }
+};
+
+export const editventasMercaderia = async (id_VentaMercaderia, data) => {
+    try {
+        const response = await api.put(`/ventasMercaderia/${id_VentaMercaderia}`, data);
+        return response;
+    } catch (error) {
+        console.error(`Error al modificar el egreso con id ${id_VentaMercaderia}:`, error);
+        throw error;
+    }
+}
+
+export const editGastos = async (Id_Gastos, importe) => {
+    try {
+        const response = await api.put(`/gastosImporte/${Id_Gastos}`, importe);
+        return response;
+    } catch (error) {
+        console.error(`Error al modificar el gasto con id ${Id_Gastos}:`, error);
+        throw error;
+    }
+};
 
 
 export default {
     getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, getEgresos, getTipoGastos,
-    deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor, deleteDevolucion,
+    deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor, deleteDevolucion, deleteUsuario,
     addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas, addIvaCompras, addEgresos, addGastos,
-    editIngreso, editEgreso
+    editIngreso, editEgreso, editIvaVentas, editventasMercaderia, editGastos
     };
