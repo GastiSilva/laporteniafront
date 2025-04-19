@@ -1,6 +1,8 @@
 <template>
     <div v-if="currentView === 'gestionTablasView'">
         <q-card-actions align="right">
+            <q-input v-if="selectedTable && !permitirFiltrar" v-model="fechaDesde" type="date" label="Fecha Desde" outlined dense class="q-mr-lg" />
+            <q-input  v-if="selectedTable && !permitirFiltrar"  v-model="fechaHasta" type="date" label="Fecha Hasta" outlined dense class="q-mr-lg"  />
             <q-btn v-if="selectedTable && !permitirAgregar" label="Agregar" color="primary" icon="add" @click="consularTabla" />
             <q-btn v-if="selectedTable && !permitirEliminar" label="Eliminar" color="primary" icon="remove" @click="handleEliminar" />
             <q-btn v-if="selectedTable && !permitirModificar" label="Modificar" color="primary" icon="edit" @click="handleModificar" />
@@ -44,9 +46,8 @@
 
 <script>
 import { ref, onMounted, watch, computed } from 'vue';
-import {    getTableData,getCompraFormData,
-            deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor, deleteDevolucion, deleteUsuario,
-            editIngreso, editEgreso, editIvaVentas, editventasMercaderia, editGastos} from '../service/GestionService';
+import {    getTableData,getCompraFormData,  deleteCliente, deleteProveedor, deleteVendedor, deleteUsuario,
+            editIngreso, editEgreso, editIvaVentas, editventasMercaderia, editGastos, editIvaCompras, editDevolucion, editProduccion} from '../service/GestionService';
 import FormularioAgregar from './FormularioAgregar.vue';
 import FormularioCompras from './FormularioCompras.vue';
 import FormularioIvaVentas from './FormularioIvaVentas.vue';
@@ -81,76 +82,84 @@ export default {
         const editValue = ref('');
         const filaSeleccionada = ref(null);
         const mostrarFormulario = ref(false);
+        const fechaDesde = ref(null);
+        const fechaHasta = ref(null);
 
         const obtenerDatosTablas = async () => {
             try {
-                const response = await getTableData(props.selectedTable);
-                const data = response.data;
+            const response = await getTableData(props.selectedTable, fechaDesde.value, fechaHasta.value);
+            const data = response.data;
 
-                if (data.length > 0) {
-                    columns.value = Object.keys(data[0]).filter((column, index) => {
-                        if (index === 0) {
-                            return true;
-                        }
-                        if (props.selectedTable === 'Ingresos' && column.toLowerCase() === 'cuit') {
-                            return false;
-                        }
-                        return !column.toLowerCase().startsWith('id_');
-                    });
-
-                    const columnasAFormatear = [
-                        'Importe',
-                        'ImporteTotal',
-                        'Total',
-                        'Neto',
-                        'IVA21',
-                        'IVA10_5',
-                        'PercIVA',
-                        'IngrBrutosRetEfect',
-                        'ConceptosNoAgravados',
-                        'Flete10_5',
-                        'PercepcionesCba',
-                        'PercepcionesIIBB',
-                        'Retenciones',
-                        'PrecioUnitario',
-                        'PrecioTotal'
-                    ];
-
-                    rows.value = data.map(row => {
-                        const filasFiltradas = {};
-                        columns.value.forEach(column => {
-                            const valor = row[column];
-
-                            if (typeof valor === 'boolean') {
-                                filasFiltradas[column] = valor ? '✔' : '✘';
-                            } else if (columnasAFormatear.includes(column)) {
-                                filasFiltradas[column] = new Intl.NumberFormat('es-AR', {
-                                    style: 'currency',
-                                    currency: 'ARS',
-                                    minimumFractionDigits: 2
-                                }).format(valor);
-                            } else {
-                                filasFiltradas[column] = valor;
-                            }
-                        });
-                        return filasFiltradas;
-                    });
-
-                } else {
-                    columns.value = data.columns.filter((column, index) => {
-                        if (index === 0) {
-                            return true;
-                        }
-                        if (props.selectedTable === 'Ingresos' && column.toLowerCase() === 'cuit') {
-                            return false;
-                        }
-                        return !column.toLowerCase().startsWith('id_');
-                    });
-                    rows.value = [];
+            if (data.length > 0) {
+                columns.value = Object.keys(data[0]).filter((column, index) => {
+                if (index === 0) {
+                    return true;
                 }
+                if (props.selectedTable === 'Ingresos' && column.toLowerCase() === 'cuit') {
+                    return false;
+                }
+                if (column.toLowerCase() === 'contrasenia') {
+                    return false;
+                }
+                return !column.toLowerCase().startsWith('id_');
+                });
+
+                const columnasAFormatear = [
+                'Importe',
+                'ImporteTotal',
+                'Total',
+                'Neto',
+                'IVA21',
+                'IVA10_5',
+                'PercIVA',
+                'IngrBrutosRetEfect',
+                'ConceptosNoAgravados',
+                'Flete10_5',
+                'PercepcionesCba',
+                'PercepcionesIIBB',
+                'Retenciones',
+                'PrecioUnitario',
+                'PrecioTotal'
+                ];
+
+                rows.value = data.map(row => {
+                const filasFiltradas = {};
+                columns.value.forEach(column => {
+                    const valor = row[column];
+
+                    if (typeof valor === 'boolean') {
+                    filasFiltradas[column] = valor ? '✔' : '✘';
+                    } else if (columnasAFormatear.includes(column)) {
+                    filasFiltradas[column] = new Intl.NumberFormat('es-AR', {
+                        style: 'currency',
+                        currency: 'ARS',
+                        minimumFractionDigits: 2
+                    }).format(valor);
+                    } else {
+                    filasFiltradas[column] = valor;
+                    }
+                });
+                return filasFiltradas;
+                });
+
+            } else {
+                columns.value = data.columns.filter((column, index) => {
+                if (index === 0) {
+                    return true;
+                }
+                if (props.selectedTable === 'Ingresos' && column.toLowerCase() === 'cuit') {
+                    return false;
+                }
+                if (column.toLowerCase() === 'contrasenia') {
+                    return false;
+                }
+                return !column.toLowerCase().startsWith('id_');
+                });
+                rows.value = [];
+            }
 
             } catch (error) {
-                console.error('Error fetching data:', error);
+            console.error('Error fetching data:', error);
             }
         };
 
@@ -186,13 +195,17 @@ export default {
         });
 
         const permitirEliminar = computed(() => {
-            return (props.selectedTable === 'Ingresos' || props.selectedTable === 'Egresos' || props.selectedTable === 'IVAVentas' || props.selectedTable === 'Gastos');
+            return (props.selectedTable === 'Produccion' || props.selectedTable === 'VentasMercaderia' ||props.selectedTable === 'Ingresos' || props.selectedTable === 'Egresos' || props.selectedTable === 'IVAVentas' || props.selectedTable === 'IVACompras' || props.selectedTable === 'Gastos' || props.selectedTable === 'Devolucion');
         });
 
         const permitirModificar = computed(() => {
-            return (props.selectedTable === 'Devolucion'  || props.selectedTable === 'Produccion' || props.selectedTable === 'MateriaPrima' 
+            return (  props.selectedTable === 'MateriaPrima' 
                 || props.selectedTable === 'Clientes' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores' || props.selectedTable === 'Usuarios'
             );
+        });
+
+        const permitirFiltrar = computed(() => {
+            return (props.selectedTable === 'Clientes' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores' || props.selectedTable === 'Gastos' || props.selectedTable === 'Usuarios');
         });
 
         const consularTabla = () => {
@@ -216,6 +229,8 @@ export default {
         };
 
         watch(() => props.selectedTable, () => {
+            fechaDesde.value = null;
+            fechaHasta.value = null;
             obtenerDatosTablas();
             currentView.value = 'gestionTablasView';
         });
@@ -234,18 +249,12 @@ export default {
         };
 
         const handleEliminar = () => {
-            if (props.selectedTable === 'Produccion') {
-                eliminarProduccion();
-            } else if (props.selectedTable === 'VentasMercaderia') {
-                eliminarVentas();
-            } else if (props.selectedTable === 'Clientes') {
+            if (props.selectedTable === 'Clientes') {
                 eliminarCliente();
             } else if (props.selectedTable === 'Proveedor') {
                 eliminarProveedor();
             } else if (props.selectedTable === 'Vendedores') {
                 eliminarVendedor();
-            } else if (props.selectedTable === 'Devolucion') {
-                eliminarDevolucion();
             } else if( props.selectedTable === 'Usuarios') {
                 eliminarUsuario();
             } 
@@ -265,6 +274,12 @@ export default {
                 actualizarVentasMercaderia();
             }else if(props.selectedTable === 'Gastos'){
                 actualizarGastos();
+            }else if(props.selectedTable === 'IVACompras'){
+                actualizarIVACompras();
+            }else if(props.selectedTable === 'Devolucion'){
+                actualizarDevolucion();
+            }else if(props.selectedTable === 'Produccion'){
+                actualizarProduccion();
             }
             else {
                 console.error('No se puede modificar esta tabla.');
@@ -272,38 +287,6 @@ export default {
         };
 
         //METODOS ABM
-        const eliminarProduccion = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idProduccion = selectedRow.id_Produccion;
-                const cantidad = selectedRow.Cantidad;
-                try {
-                    await deleteProduccion(idProduccion, cantidad);
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error eliminando produccion:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        const eliminarVentas = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idventas = selectedRow.Id_VentaMercaderia;
-                const cantidad = selectedRow.Cantidad;
-                try {
-                    await deleteVentas(idventas, cantidad);
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error eliminando produccion:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
         const eliminarVendedor = async () => {
             if (filaSeleccionada.value !== null) {
                 const selectedRow = rows.value[filaSeleccionada.value];
@@ -343,26 +326,6 @@ export default {
                     obtenerDatosTablas();
                 } catch (error) {
                     console.error('Error eliminando clientes:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        const eliminarDevolucion = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idDevolucion = selectedRow.idDevolucion;
-                const cantidad = selectedRow.Cantidad;
-                try {
-                    await deleteDevolucion(idDevolucion, cantidad);
-                    obtenerDatosTablas();
-                    $q.notify({
-                        type: 'positive',
-                        message: `Se eliminó ${cantidad} de devolucion correctamente`
-                    });
-                } catch (error) {
-                    console.error('Error eliminando devolucion:', error);
                 }
             } else {
                 console.error('No hay fila seleccionada.');
@@ -458,6 +421,46 @@ export default {
             }
         };
 
+        const actualizarIVACompras = async () => {
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idIvaCompras = selectedRow.Id_IvaCompras;
+                const factura = selectedRow.Factura;
+                const facturaN = selectedRow.Factura_N;
+                const neto = selectedRow.Neto;
+                const iva21 = selectedRow.IVA21;
+                const iva10_5 = selectedRow.IVA10_5;
+                const percIva = selectedRow.PercIVA;
+                const ingrBrutosRetEfect = selectedRow.IngrBrutosRetEfect;
+                const conceptosNoAgravados = selectedRow.ConceptosNoAgravados;
+                const flete10_5 = selectedRow.Flete10_5;
+                const percepcionesCba = selectedRow.PercepcionesCba;
+                const percepcionesIIBB = selectedRow.PercepcionesIIBB;
+                const importetotal = selectedRow.ImporteTotal;
+                try {
+                    await editIvaCompras(idIvaCompras, {
+                        Factura: factura,
+                        Factura_N: facturaN,
+                        Neto: neto,
+                        IVA21: iva21,
+                        IVA10_5: iva10_5,
+                        PercIVA: percIva,
+                        IngrBrutosRetEfect: ingrBrutosRetEfect,
+                        ConceptosNoAgravados: conceptosNoAgravados,
+                        Flete10_5: flete10_5,
+                        PercepcionesCba: percepcionesCba,
+                        PercepcionesIIBB: percepcionesIIBB,
+                        ImporteTotal: importetotal
+                    });
+                    obtenerDatosTablas();
+                } catch (error) {
+                    console.error('Error modificando ingreso:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        };
+
         const actualizarVentasMercaderia = async () =>{
             if (filaSeleccionada.value !== null) {
                 const selectedRow = rows.value[filaSeleccionada.value];
@@ -497,6 +500,50 @@ export default {
                 console.error('No hay fila seleccionada.');
             }
         };
+
+        const actualizarDevolucion = async () => {
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idDevolucion = selectedRow.id_Devolucion;
+                const cantidad = selectedRow.Cantidad;
+                try {
+                    await editDevolucion(idDevolucion, {nuevaCantidad: Number(cantidad)});
+                    $q.notify({
+                        type: 'positive',
+                        message: `Se modificó  correctamente`
+                    });
+                    obtenerDatosTablas();
+                } catch (error) {
+                    console.error('Error modificando devolucion:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        };
+
+        const actualizarProduccion = async () => {
+            if (filaSeleccionada.value !== null) {
+                const selectedRow = rows.value[filaSeleccionada.value];
+                const idProduccion = selectedRow.id_Produccion;
+                const cantidad = selectedRow.Cantidad;
+                try {
+                    await editProduccion(idProduccion, {nuevaCantidad: Number(cantidad)});
+                    $q.notify({
+                        type: 'positive',
+                        message: `Se modificó  correctamente`
+                    });
+                    obtenerDatosTablas();
+                } catch (error) {
+                    console.error('Error modificando devolucion:', error);
+                }
+            } else {
+                console.error('No hay fila seleccionada.');
+            }
+        };
+
+        watch([fechaDesde, fechaHasta], ([newFechaDesde, newFechaHasta]) => {
+            obtenerDatosTablas();
+        });
         
         onMounted(() => {
             obtenerDatosTablas();
@@ -515,6 +562,7 @@ export default {
             permitirAgregar,
             permitirModificar,
             permitirEliminar,
+            permitirFiltrar,
             guardarEdit,
             editValue,
             filaSeleccionada,
@@ -522,15 +570,14 @@ export default {
             isSelected,
             volverAGestion,
             mostrarFormulario,
+            fechaDesde,
+            fechaHasta,
             //METODOS ABM
             handleModificar,
             handleEliminar,
-            eliminarProduccion,
-            eliminarVentas,
             eliminarCliente,
             eliminarVendedor,
             eliminarProveedor,
-            eliminarDevolucion,
             eliminarUsuario
         };
     }

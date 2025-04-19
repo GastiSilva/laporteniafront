@@ -9,7 +9,7 @@
                 <!-- 🧾 Datos de la Compra -->
                 <div class="text-subtitle1 text-bold text-secondary q-mb-md">Datos de la Compra</div>
 
-                <q-input outlined v-model="compra.Fecha" label="Fecha" type="datetime-local" class="q-mb-md" />
+                <q-input outlined v-model="compra.Fecha" label="Fecha" type="date" class="q-mb-md" />
 
                 <div class="row q-col-gutter-md">
                     <q-input outlined v-model.number="compra.Cantidad" label="Cantidad" type="number" class="col" />
@@ -30,7 +30,7 @@
 
                 <q-input outlined v-model="materiaPrima.Nombre" label="Nombre" class="q-mb-md" />
 
-                <q-input outlined v-model="materiaPrima.Fecha" label="Fecha" type="datetime-local" class="q-mb-md" />
+                <q-input outlined v-model="materiaPrima.Fecha" label="Fecha" type="date" class="q-mb-md" />
 
                 <q-input outlined v-model="materiaPrima.Marca" label="Marca" class="q-mb-md" />
 
@@ -129,9 +129,9 @@ export default {
                     PrecioUnitario: materiaPrima.value.PrecioUnitario,
                     PrecioTotal: materiaPrima.value.PrecioTotal
                 },
-                estadoId: selectedEstado.value
+                estadoId: selectedEstado.value.value
             }
-
+            console.log('Payload a enviar:', payload);
             // Enviamos al backend
             addCompra(payload)
                 .then(() => {

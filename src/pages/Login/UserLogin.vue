@@ -6,15 +6,15 @@
           style="max-width: 600px; background-color: rgba(255, 255, 255, 0.9); margin: 0;">
           <q-card-section>
             <q-form @submit.prevent="login">
-              <!-- Campo de nombre de usuario -->
               <q-input v-model="username" label="Nombre de usuario" type="text" outlined required class="q-mb-md"
                 style="min-height: 50px;" />
+                <q-input v-model="password" label="Contraseña" :type="showPassword ? 'text' : 'password'" outlined required class="q-mt-md"
+  style="min-height: 50px;">
+  <template v-slot:append>
+    <q-icon :name="showPassword ? 'visibility_off' : 'visibility'" @click="togglePasswordVisibility" />
+  </template>
+</q-input>
 
-              <!-- Campo de contraseña -->
-              <q-input v-model="password" label="Contraseña" type="password" outlined required class="q-mt-md"
-                style="min-height: 50px;" />
-
-              <!-- Botón para enviar el formulario -->
               <q-btn label="Iniciar sesión" :style="{ backgroundColor: '#292678', color: 'white' }" type="submit"
                 class="q-mt-md full-width" />
 
@@ -68,10 +68,18 @@ export default {
         });
     };
 
+    const showPassword = ref(false)
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
+
     return {
       username,
       password,
       errorMessage,
+      showPassword,
+      togglePasswordVisibility,
       login,
     };
   },
