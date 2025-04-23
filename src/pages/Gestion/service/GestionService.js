@@ -16,7 +16,6 @@ export const getTableData = async (tableName, fechaDesde = null, fechaHasta = nu
     }
 };
 
-
 export const getFormsData = async (tableName) => {
     try {
         const response = await api.get(`/datosTablasForms/${tableName}`);
@@ -77,6 +76,15 @@ export const getTipoGastos = async () => {
     }
 }
 
+export const getStock = async () => {
+    try {
+        const response = await api.get('/Obtenerstock');
+        return response;
+    } catch (error) {
+        console.error('Error al traer stock:', error);
+        throw error;
+    }
+}
 //METODOS AGREGAR
 export const addUsuario = async ({ Usuario, Contrasenia, Mail }) => {
     try {
@@ -131,11 +139,12 @@ export const addCliente = async ({ Nombre, Cuil }) => {
     }
 };
 
-export const addCompra = async ({ compra, materiaPrima, estadoId }) => {
+export const addCompra = async ({ compra, materiasPrimas, estadoId }) => {
+    console.log('materiaPrimas', materiasPrimas)
     try {
-      const response = await api.post('/compras', {
+      const response = await api.post('/GuardarCompra', {
         compra,
-        materiaPrima,
+        materiasPrimas,
         estadoId
       })
       return response.data
@@ -198,37 +207,16 @@ export const addGastos = async (gasto) => {
     }
 }
 
+export const addMateriaPrima = async (materia_prima) => {
+    try {
+      const response = await api.post('/GuardarEnMateriaPrima', materia_prima);
+      return response.data;
+    } catch (error) {
+      console.error('Error al guardar la materia prima:', error);
+      throw error;
+    }
+}
 //METODOS ELIMINAR 
-export const deleteProduccion = async (id, cantidad) => {
-    try {
-        const response = await api.delete(`/EliminarDeProduccion/${id}/${cantidad}`);
-        return response;
-    } catch (error) {
-        console.error(`No se pudo borrar el producto con  ${id}:`, error);
-        throw error;
-    }
-}
-
-export const deleteDevolucion = async (id, cantidad) => {
-    try {
-        const response = await api.delete(`/EliminarDeDevolucion/${id}/${cantidad}`);
-        return response;
-    } catch (error) {
-        console.error(`No se pudo borrar el producto con  ${id}:`, error);
-        throw error;
-    }
-}
-
-export const deleteVentas = async (id, cantidad) => {
-    try {
-        const response = await api.delete(`/eliminarDeVentaMercaderia/${id}/${cantidad}`);
-        return response;
-    } catch (error) {
-        console.error(`No se pudo borrar el producto con  ${id}:`, error);
-        throw error;
-    }
-}
-
 export const deleteProveedor = async (id) => {
     try {
         const response = await api.delete('/removeProveedor', {
@@ -265,7 +253,30 @@ export const deleteCliente = async (id) => {
     }
 };
 
+export const deleteUsuario = async (id) => {
+    try {
+        const response = await api.delete('/removeUsuario', {
+            data: { id_Usuario: id } 
+        });
+        return response;
+    } catch (error) {
+        console.error(`No se pudo borrar el usuario con ${id}:`, error);
+        throw error;
+    }
+};
+
+
 //METOODOS MODIFICAR
+export const editProduccion = async (id, cantidad) => {
+    try {
+        const response = await api.delete(`/produccion/${id}/${cantidad}`);
+        return response;
+    } catch (error) {
+        console.error(`No se pudo borrar el producto con  ${id}:`, error);
+        throw error;
+    }
+}
+
 export const editIngreso = async (id_Ingreso, data) => {
     try {
         const response = await api.put(`/ingresos/${id_Ingreso}`, data);
@@ -286,11 +297,60 @@ export const editEgreso = async (Id_Egresos, importe_total) => {
     }
 };
 
+export const editIvaVentas = async (Id_IvaVentas, data) => {
+    try {
+        const response = await api.put(`/ivaventas/${Id_IvaVentas}`, data);
+        return response;
+    } catch (error) {
+        console.error(`Error al modificar el egreso con id ${Id_IvaVentas}:`, error);
+        throw error;
+    }
+};
+
+export const editIvaCompras = async (Id_IvaCompras, data) => {
+    try {
+        const response = await api.put(`/ivacompras/${Id_IvaCompras}`, data);
+        return response;
+    } catch (error) {
+        console.error(`Error al modificar el egreso con id ${Id_IvaCompras}:`, error);
+        throw error;
+    }
+};
+
+export const editventasMercaderia = async (id_VentaMercaderia, data) => {
+    try {
+        const response = await api.put(`/ventasMercaderia/${id_VentaMercaderia}`, data);
+        return response;
+    } catch (error) {
+        console.error(`Error al modificar el egreso con id ${id_VentaMercaderia}:`, error);
+        throw error;
+    }
+}
+
+export const editGastos = async (Id_Gastos, importe) => {
+    try {
+        const response = await api.put(`/gastosImporte/${Id_Gastos}`, importe);
+        return response;
+    } catch (error) {
+        console.error(`Error al modificar el gasto con id ${Id_Gastos}:`, error);
+        throw error;
+    }
+};
+
+export const editDevolucion = async (id_Devolucion, data) => {
+    try {
+        const response = await api.put(`/devolucion/${id_Devolucion}`, data);
+        return response;
+    } catch (error) {
+        console.error(`Error al modificar el egreso con id ${id_Devolucion}:`, error);
+        throw error;
+    }
+}
 
 
 export default {
-    getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, getEgresos, getTipoGastos,
-    deleteProduccion, deleteVentas, deleteCliente, deleteProveedor, deleteVendedor, deleteDevolucion,
-    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas, addIvaCompras, addEgresos, addGastos,
-    editIngreso, editEgreso
+    getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, getEgresos, getTipoGastos, getStock, 
+    deleteCliente, deleteProveedor, deleteVendedor, deleteUsuario,
+    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas, addIvaCompras, addEgresos, addGastos, addMateriaPrima,
+    editIngreso, editEgreso, editIvaVentas, editventasMercaderia, editGastos, editIvaCompras, editDevolucion, editProduccion
     };

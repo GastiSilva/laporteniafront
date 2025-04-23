@@ -21,7 +21,6 @@
                     <q-btn label="Agregar producto" color="primary" @click="addProduct" class="q-mt-md col-3"
                         borderer />
 
-                    <!-- Tabla de productos -->
                     <div class="q-mt-md" style="max-width: 80%;">
                         <q-table :rows="filteredProducts" :columns="columns" row-key="id" flat bordered
                             class="my-table-product">
@@ -57,7 +56,6 @@ export default {
         const sections = [
             "Producción",
             "Devolución",
-            "Compra de Materia Prima",
             "Venta de Mercaderías",
         ];
         const $q = useQuasar();
@@ -65,13 +63,12 @@ export default {
         const filteredProductsOptions = ref([]);
         const allProducts = ref([]);
 
-        const products = ref([]); // Todos los productos cargados del backend
+        const products = ref([]); 
         const loading = ref(true); 
         const selectedSection = ref(null);
         const filters = ref({ fecha: "" });
         const newProduct = ref({ producto: "", cantidad: null, fecha: "" });
         const addedProducts = ref([]);
-        // let productId = 1;
 
         const onSelectUpdate = (val) => {
             console.log("Valor seleccionado:", val);

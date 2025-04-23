@@ -8,44 +8,52 @@
             <q-form @submit.prevent="guardarCompra">
                 <!-- 🧾 Datos de la Compra -->
                 <div class="text-subtitle1 text-bold text-secondary q-mb-md">Datos de la Compra</div>
+                <q-input outlined v-model="compra.Fecha" label="Fecha" type="date" class="q-mb-md" />
 
-                <q-input outlined v-model="compra.Fecha" label="Fecha" type="datetime-local" class="q-mb-md" />
-
-                <div class="row q-col-gutter-md">
-                    <q-input outlined v-model.number="compra.Cantidad" label="Cantidad" type="number" class="col" />
-                    <q-input outlined v-model.number="compra.PrecioUnit" label="Precio Unitario" type="number"
-                        class="col" />
+                <div class="row q-mb-md q-mt-md">
+                    <q-input outlined v-model="compra.Factura_N" label="Factura N°" class="col-4 q-mr-md " />
+                    <q-input outlined v-model.number="compra.Importe" label="Importe" type="number" class="col-7" />
                 </div>
 
-                <q-input outlined v-model="compra.Factura_N" label="Factura N°" class="q-mb-md q-mt-md" />
+                <q-input outlined v-model="compra.Marca" label="Marca" class="q-mb-md q-mt-md col-11" />
 
-                <q-input outlined v-model.number="compra.Importe" label="Importe" type="number" class="q-mb-md" />
+                <div class="row q-mb-md">
+                    <q-input outlined v-model.number="compra.IVA21" label="IVA 21%" type="number" class="col-3 q-mr-md" />
+                    <q-input outlined v-model.number="compra.IVA10_5" label="IVA 10.5%" type="number" class="col-4 q-mr-md" />
+                    <q-input outlined v-model.number="compra.PercepcionIVA" label="Percepciones IVA" type="number" class="col-4" />
+                </div>
 
-                <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined class="q-ma-xs"
-                    clearable :error="!selectedEstado && errorIntento" />
+                <div class="row q-mb-md">
+                    <q-input outlined v-model.number="compra.PercepcionesMuniCba" label="Percepciones Municipales Córdoba" type="number" class="col-6 q-mr-md" />
+                    <q-input outlined v-model.number="compra.Flete" label="Flete" type="number" class="col-5" />
+                </div>
+
+                <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined clearable
+                    :error="!selectedEstado && errorIntento" />
+
+
 
                 <!-- 🌾 Datos de Materia Prima -->
 
-                <div class="text-subtitle1 text-bold text-secondary q-mb-md">Datos de Materia Prima</div>
+                <div class="text-subtitle1 text-bold text-secondary q-mb-md q-mt-md">Datos de Materia Prima</div>
 
-                <q-input outlined v-model="materiaPrima.Nombre" label="Nombre" class="q-mb-md" />
-
-                <q-input outlined v-model="materiaPrima.Fecha" label="Fecha" type="datetime-local" class="q-mb-md" />
-
-                <q-input outlined v-model="materiaPrima.Marca" label="Marca" class="q-mb-md" />
-
-                <div class="row q-col-gutter-md">
-                    <q-input outlined v-model.number="materiaPrima.Cantidad" label="Cantidad" type="number"
-                        class="col" />
-                    <q-input outlined v-model.number="materiaPrima.PrecioUnitario" label="Precio Unitario" type="number"
-                        class="col" />
+                <div class="row q-mt-md">
+                    <q-input v-model="nuevaMateriaPrima.Nombre" outlined label="Nombre" class="col-6 q-mr-md" />
+                    <q-input v-model.number="nuevaMateriaPrima.Cantidad" outlined label="Cantidad" type="number"
+                        class="col-3" />
+                    <q-btn label="Agregar" color="primary" @click="agregarMateriaPrima" dense rounded
+                        class="col-2 q-ml-md q-pa-xs" />
                 </div>
-
-                <q-input outlined v-model.number="materiaPrima.PrecioTotal" label="Precio Total" type="number"
-                    class="q-mb-lg q-mt-md" />
-
+                <q-list bordered separator v-if="materiasPrimas.length" class="q-mt-md">
+                    <q-item v-for="(mp, index) in materiasPrimas" :key="index">
+                        <q-item-section>{{ mp.Nombre }} - {{ mp.Cantidad }} unidades</q-item-section>
+                        <q-item-section side>
+                            <q-btn icon="delete" flat color="negative" @click="eliminarMateriaPrima(index)" />
+                        </q-item-section>
+                    </q-item>
+                </q-list>
                 <!-- Botones -->
-                <div class="row justify-center q-gutter-md">
+                <div class="row justify-center q-gutter-m q-mt-md">
                     <q-btn label="Guardar" type="submit" color="primary" class="q-px-lg" />
                     <q-btn label="Cancelar" flat color="negative" @click="limpiarFormulario" />
                 </div>
@@ -58,52 +66,67 @@
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { obtenerEstados } from 'src/components/Remitos/service/RemitosService'
-import { addCompra } from '../service/GestionService';
+import { addCompra } from '../service/GestionService'
 
 export default {
     name: 'FormularioCompras',
     emits: ['volver'],
     setup() {
         const $q = useQuasar()
+
         const compra = ref({
             Fecha: '',
-            Cantidad: null,
-            PrecioUnit: null,
             Factura_N: '',
             Importe: null,
-            estado: null
+            Marca: '',
+            IVA21: null,
+            IVA10_5: null,
+            PercepcionIVA: null,
+            PercepcionesMuniCba: null,
+            Flete: null
         })
 
-        const materiaPrima = ref({
+        const nuevaMateriaPrima = ref({
             Nombre: '',
-            Fecha: '',
-            Marca: '',
             Cantidad: null,
-            PrecioUnitario: null,
-            PrecioTotal: null
         })
-        const selectedEstado = ref(null);
-        const estadoOptions = ref([]);
+
+        const materiasPrimas = ref([]) // ✅ muchas materias primas
+
+        const selectedEstado = ref(null)
+        const estadoOptions = ref([])
 
         onMounted(() => {
-            cargarEstados();
+            cargarEstados()
         })
 
         const cargarEstados = async () => {
             try {
-                const estados = await obtenerEstados();
+                const estados = await obtenerEstados()
                 estadoOptions.value = estados.map(estado => ({
                     label: estado.Estado,
                     value: estado.Id_Estado,
-                }));
+                }))
             } catch (error) {
-                console.error('Error al cargar los estados:', error);
-                errorMessage.value = 'Error al cargar los estados.';
+                console.error('Error al cargar los estados:', error)
             }
-        };
+        }
 
-        function guardarCompra() {
-            // Validación rápida del estado
+        const agregarMateriaPrima = () => {
+            if (!nuevaMateriaPrima.value.Nombre || !nuevaMateriaPrima.value.Cantidad) {
+                $q.notify({ type: 'warning', message: 'Completá los datos de materia prima' })
+                return
+            }
+
+            materiasPrimas.value.push({ ...nuevaMateriaPrima.value })
+            nuevaMateriaPrima.value = { Nombre: '', Cantidad: null }
+        }
+
+        const eliminarMateriaPrima = (index) => {
+            materiasPrimas.value.splice(index, 1)
+        }
+
+        const guardarCompra = () => {
             if (!selectedEstado.value) {
                 $q.notify({
                     type: 'warning',
@@ -112,70 +135,68 @@ export default {
                 return
             }
 
-            // Armamos el payload completo
+            if (materiasPrimas.value.length === 0) {
+                $q.notify({
+                    type: 'warning',
+                    message: 'Agregá al menos una materia prima'
+                })
+                return
+            }
+
             const payload = {
                 compra: {
                     Fecha: compra.value.Fecha,
-                    Cantidad: compra.value.Cantidad,
-                    PrecioUnit: compra.value.PrecioUnit,
                     Factura_N: compra.value.Factura_N,
-                    Importe: compra.value.Importe
+                    Importe: compra.value.Importe,
+                    Marca: compra.value.Marca,
+                    IVA21: compra.value.IVA21,
+                    IVA10_5: compra.value.IVA10_5,
+                    PercepcionIVA: compra.value.PercepcionIVA,
+                    PercepcionesMuniCba: compra.value.PercepcionesMuniCba,
+                    Flete: compra.value.Flete
                 },
-                materiaPrima: {
-                    Nombre: materiaPrima.value.Nombre,
-                    Fecha: materiaPrima.value.Fecha,
-                    Marca: materiaPrima.value.Marca,
-                    Cantidad: materiaPrima.value.Cantidad,
-                    PrecioUnitario: materiaPrima.value.PrecioUnitario,
-                    PrecioTotal: materiaPrima.value.PrecioTotal
-                },
-                estadoId: selectedEstado.value
+                materiasPrimas: materiasPrimas.value,
+                estadoId: selectedEstado.value.value
             }
-
-            // Enviamos al backend
             addCompra(payload)
                 .then(() => {
-                    $q.notify({
-                        type: 'positive',
-                        message: 'Compra guardada con éxito'
-                    })
+                    $q.notify({ type: 'positive', message: 'Compra guardada con éxito' })
                     limpiarFormulario()
                 })
                 .catch(error => {
                     console.error('Error al guardar la compra:', error)
-                    $q.notify({
-                        type: 'negative',
-                        message: 'Ocurrió un error al guardar la compra'
-                    })
+                    $q.notify({ type: 'negative', message: 'Error al guardar la compra' })
                 })
         }
 
-
-        function limpiarFormulario() {
+        const limpiarFormulario = () => {
             compra.value = {
                 Fecha: '',
-                Cantidad: null,
-                PrecioUnit: null,
                 Factura_N: '',
                 Importe: null,
-                estado: null
-            }
-
-            materiaPrima.value = {
-                Nombre: '',
-                Fecha: '',
                 Marca: '',
-                Cantidad: null,
-                PrecioUnitario: null,
-                PrecioTotal: null
+                IVA21: null,
+                IVA10_5: null,
+                PercepcionIVA: null,
+                PercepcionesMuniCba: null,
+                Flete: null
             }
+            nuevaMateriaPrima.value = {
+                Nombre: '',
+                Cantidad: null,
+                Fecha: ''
+            }
+            materiasPrimas.value = []
         }
 
         return {
             compra,
-            materiaPrima,
-            estadoOptions,
+            nuevaMateriaPrima,
+            materiasPrimas,
             selectedEstado,
+            estadoOptions,
+            agregarMateriaPrima,
+            eliminarMateriaPrima,
             guardarCompra,
             limpiarFormulario
         }
