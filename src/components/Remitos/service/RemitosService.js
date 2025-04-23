@@ -1,6 +1,5 @@
 import { api } from 'boot/axios';
 
-
 export const crearRemito = async (remitoData) => {
     try {
       const response = await api.post(`/altaRemitos`, remitoData);
@@ -8,7 +7,7 @@ export const crearRemito = async (remitoData) => {
     } catch (error) {
       throw error.response ? error.response.data : error;
     }
-  };
+};
 
 export const obtenerEstados = async () => {
   try {
@@ -49,4 +48,12 @@ export const obtenerPDFRemitos = async (id) => {
   }
 };
 
+export const eliminarRemito = async (id) => {
+  try {
+    const response = await api.delete(`/EliminarRemito/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
 

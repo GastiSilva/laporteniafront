@@ -41,12 +41,12 @@
     <FormularioEgresos v-if="currentView === 'formularioEgresos'" :selectedTable="selectedTable" :columns="columns"
         @volver="volverAGestion" />
     <FormularioGastos v-if="currentView === 'formularioGastos'" :selectedTable="selectedTable" :columns="columns"
-        @volver="volverAGestion" />
+        @volver="volverAGestion" /> 
 </template>
 
 <script>
 import { ref, onMounted, watch, computed } from 'vue';
-import {    getTableData,getCompraFormData,  deleteCliente, deleteProveedor, deleteVendedor, deleteUsuario,
+import {    getTableData, getCompraFormData, getStock, deleteCliente, deleteProveedor, deleteVendedor, deleteUsuario,
             editIngreso, editEgreso, editIvaVentas, editventasMercaderia, editGastos, editIvaCompras, editDevolucion, editProduccion} from '../service/GestionService';
 import FormularioAgregar from './FormularioAgregar.vue';
 import FormularioCompras from './FormularioCompras.vue';
@@ -142,6 +142,21 @@ export default {
                 return filasFiltradas;
                 });
 
+                // Si la tabla es MateriaPrima, agregar la columna de stock
+                if (props.selectedTable === 'MateriaPrima') {
+                columns.value.push('Stock'); // Agregar la columna "Stock"
+                const stockData = await getStock(); // Obtener los datos de stock
+                console.log('stockData', stockData);
+                rows.value.forEach(row => {
+    // Buscar el stock correspondiente
+    const stockItem = stockData.data.find(stock => stock.id_MateriaPrima === row.id_MateriaPrima);
+
+    // Si se encuentra el stock, asignar la cantidad convertida a número, sino asignar 0
+    row.Stock = stockItem ? Number(stockItem.totalCantidad) : 0;
+});
+
+                }
+
             } else {
                 columns.value = data.columns.filter((column, index) => {
                 if (index === 0) {
@@ -195,7 +210,9 @@ export default {
         });
 
         const permitirEliminar = computed(() => {
-            return (props.selectedTable === 'Produccion' || props.selectedTable === 'VentasMercaderia' ||props.selectedTable === 'Ingresos' || props.selectedTable === 'Egresos' || props.selectedTable === 'IVAVentas' || props.selectedTable === 'IVACompras' || props.selectedTable === 'Gastos' || props.selectedTable === 'Devolucion');
+            return (props.selectedTable === 'Produccion' || props.selectedTable === 'VentasMercaderia' || props.selectedTable === 'MateriaPrima' ||
+                    props.selectedTable === 'Ingresos' || props.selectedTable === 'Egresos' || props.selectedTable === 'IVAVentas' ||
+                     props.selectedTable === 'IVACompras' || props.selectedTable === 'Gastos' || props.selectedTable === 'Devolucion');
         });
 
         const permitirModificar = computed(() => {
@@ -205,7 +222,7 @@ export default {
         });
 
         const permitirFiltrar = computed(() => {
-            return (props.selectedTable === 'Clientes' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores' || props.selectedTable === 'Gastos' || props.selectedTable === 'Usuarios');
+            return (props.selectedTable === 'Clientes' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores' || props.selectedTable === 'Gastos' || props.selectedTable === 'Usuarios'|| props.selectedTable === 'MateriaPrima');
         });
 
         const consularTabla = () => {

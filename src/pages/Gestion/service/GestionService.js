@@ -76,6 +76,15 @@ export const getTipoGastos = async () => {
     }
 }
 
+export const getStock = async () => {
+    try {
+        const response = await api.get('/Obtenerstock');
+        return response;
+    } catch (error) {
+        console.error('Error al traer stock:', error);
+        throw error;
+    }
+}
 //METODOS AGREGAR
 export const addUsuario = async ({ Usuario, Contrasenia, Mail }) => {
     try {
@@ -130,11 +139,12 @@ export const addCliente = async ({ Nombre, Cuil }) => {
     }
 };
 
-export const addCompra = async ({ compra, materiaPrima, estadoId }) => {
+export const addCompra = async ({ compra, materiasPrimas, estadoId }) => {
+    console.log('materiaPrimas', materiasPrimas)
     try {
       const response = await api.post('/GuardarCompra', {
         compra,
-        materiaPrima,
+        materiasPrimas,
         estadoId
       })
       return response.data
@@ -197,6 +207,15 @@ export const addGastos = async (gasto) => {
     }
 }
 
+export const addMateriaPrima = async (materia_prima) => {
+    try {
+      const response = await api.post('/GuardarEnMateriaPrima', materia_prima);
+      return response.data;
+    } catch (error) {
+      console.error('Error al guardar la materia prima:', error);
+      throw error;
+    }
+}
 //METODOS ELIMINAR 
 export const deleteProveedor = async (id) => {
     try {
@@ -330,8 +349,8 @@ export const editDevolucion = async (id_Devolucion, data) => {
 
 
 export default {
-    getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, getEgresos, getTipoGastos,
- deleteCliente, deleteProveedor, deleteVendedor, deleteUsuario,
-    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas, addIvaCompras, addEgresos, addGastos,
+    getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, getEgresos, getTipoGastos, getStock, 
+    deleteCliente, deleteProveedor, deleteVendedor, deleteUsuario,
+    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas, addIvaCompras, addEgresos, addGastos, addMateriaPrima,
     editIngreso, editEgreso, editIvaVentas, editventasMercaderia, editGastos, editIvaCompras, editDevolucion, editProduccion
     };

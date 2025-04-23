@@ -32,7 +32,7 @@
                             <q-btn icon="fa-solid fa-circle-down" flat dense color="primary"
                                 @click="downloadRemito(props.row)" />
                             <q-btn icon="fa-solid fa-trash-can" flat dense color="negative"
-                                @click="deleteRemito(props.row.id)" />
+                                @click="deleteRemito(props.row.Id_Remito)" />
                         </div>
                     </q-td>
                 </template>
@@ -48,7 +48,7 @@
 
 <script>
 import { ref, computed, onMounted } from "vue";
-import { obtenerRemitos, obtenerPDFRemitos } from "../service/RemitosService";
+import { obtenerRemitos, obtenerPDFRemitos, eliminarRemito } from "../service/RemitosService";
 
 export default {
     props: {
@@ -93,8 +93,14 @@ export default {
             props.setCurrentView("main");
         };
 
-        const deleteRemito = (id) => {
-            remitos.value = remitos.value.filter((remito) => remito.id !== id);
+        const deleteRemito = async (id) => {
+            console.log("el id es: ",id);
+            try{
+                await eliminarRemito(id);
+                obtenerRemitosData(); // Actualiza la lista de remitos después de eliminar
+            }catch (error) {
+                console.error("Error al eliminar el remito:", error);
+            }
         };
 
         const downloadRemito = async (id) => {
