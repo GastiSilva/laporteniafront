@@ -12,7 +12,7 @@
                 <q-input outlined v-model="egreso.Fecha" label="Fecha" type="date" class="q-mb-md" />
                 <q-input outlined v-model="egreso.Concepto" label="Concepto" class="q-mb-md" />
                 <q-input outlined v-model="egreso.Comprobante" label="Comprobante" class="q-mb-md" />
-                <q-input outlined v-model.number="egreso.ImporteTotal" label="Importe Total" type="number" class="q-mb-md" />
+                <q-input outlined v-model.number="egreso.ImporteTotal" label="Importe Total" type="number" class="q-mb-md" prefix="$" />
 
                 <!-- Botones -->
                 <div class="row justify-center q-gutter-md">

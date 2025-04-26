@@ -13,14 +13,12 @@
                 <q-input outlined v-model="ivaVenta.Factura" label="Factura" class="q-mb-md" />
                 <q-input outlined v-model.number="ivaVenta.Factura_N" label="Factura N°" type="number"
                     class="q-mb-md" />
-                <q-input outlined v-model="ivaVenta.CondicionIva" label="Condición IVA" class="q-mb-md" />
-                <q-input outlined v-model.number="ivaVenta.Neto" label="Neto" type="number" class="q-mb-md" />
-                <q-input outlined v-model.number="ivaVenta.IVA21" label="IVA 21%" type="number" class="q-mb-md" />
-                <q-input outlined v-model.number="ivaVenta.IVA10_5" label="IVA 10.5%" type="number" class="q-mb-md" />
-                <q-input outlined v-model.number="ivaVenta.Retenciones" label="Retenciones" type="number"
-                    class="q-mb-md" />
-                <q-input outlined v-model.number="ivaVenta.ImporteTotal" label="Importe Total" type="number"
-                    class="q-mb-md" />
+                <q-input outlined v-model="ivaVenta.CondicionIva" label="Condición IVA" class="q-mb-md"  prefix="$"/>
+                <q-input outlined v-model.number="ivaVenta.Neto" label="Neto" type="number" class="q-mb-md" prefix="$"/>
+                <q-input outlined v-model.number="ivaVenta.IVA21" label="IVA 21%" type="number" class="q-mb-md" prefix="$"/>
+                <q-input outlined v-model.number="ivaVenta.IVA10_5" label="IVA 10.5%" type="number" class="q-mb-md" prefix="$"/>
+                <q-input outlined v-model.number="ivaVenta.Retenciones" label="Retenciones" type="number" class="q-mb-md" prefix="$"/>
+                <q-input outlined v-model.number="ivaVenta.ImporteTotal" label="Importe Total" type="number" class="q-mb-md" prefix="$"/>
 
                 <!-- 🌟 Datos del Cliente -->
                 <div class="text-subtitle1 text-bold text-secondary q-mb-md">Datos del Cliente</div>

@@ -15,17 +15,17 @@
                         <q-input outlined v-model="ivaCompras.Factura" label="Factura" class="q-mb-md" :rules="[val => !!val || 'Este campo es obligatorio']" />
                         <q-input outlined v-model.number="ivaCompras.Factura_N" label="Factura N°" type="number" class="q-mb-md" :rules="[val => !!val || 'Este campo es obligatorio']" />
                         <q-input outlined v-model="ivaCompras.CondicionIva" label="Condición IVA" type="text" class="q-mb-md" :rules="[val => !!val || 'Este campo es obligatorio']" />
-                        <q-input outlined v-model.number="ivaCompras.Neto" label="Neto" type="number" class="q-mb-md" :rules="[val => !!val || 'Este campo es obligatorio']" />
-                        <q-input outlined v-model.number="ivaCompras.IVA21" label="IVA 21%" type="number" class="q-mb-md" />
+                        <q-input outlined v-model.number="ivaCompras.Neto" label="Neto" type="number" class="q-mb-md" :rules="[val => !!val || 'Este campo es obligatorio']" prefix="$"/>
+                        <q-input outlined v-model.number="ivaCompras.IVA21" label="IVA 21%" type="number" class="q-mb-md" prefix="$"/>
                     </div>
                     <div class="col-6">
-                        <q-input outlined v-model.number="ivaCompras.IVA10_5" label="IVA 10.5%" type="number" class="q-mb-md" />
-                        <q-input outlined v-model.number="ivaCompras.PercIVA" label="PercIVA" type="number" class="q-mb-md"  />
-                        <q-input outlined v-model.number="ivaCompras.ConceptosNoAgravados" label="Conceptos No Agravados" type="number" class="q-mb-md" />
-                        <q-input outlined v-model.number="ivaCompras.Flete10_5" label="Flete 10.5%" type="number" class="q-mb-md" />
-                        <q-input outlined v-model.number="ivaCompras.PercepcionesCba" label="Percepciones Cba" type="number" class="q-mb-md" />
-                        <q-input outlined v-model.number="ivaCompras.PercepcionesIIBB" label="Percepciones IIBB" type="number" class="q-mb-md" />
-                        <q-input outlined v-model.number="ivaCompras.ImporteTotal" label="Importe Total" type="number" class="q-mb-md" />
+                        <q-input outlined v-model.number="ivaCompras.IVA10_5" label="IVA 10.5%" type="number" class="q-mb-md" prefix="$" />
+                        <q-input outlined v-model.number="ivaCompras.PercIVA" label="PercIVA" type="number" class="q-mb-md" prefix="$" />
+                        <q-input outlined v-model.number="ivaCompras.ConceptosNoAgravados" label="Conceptos No Agravados" type="number" class="q-mb-md" prefix="$"/>
+                        <q-input outlined v-model.number="ivaCompras.Flete10_5" label="Flete 10.5%" type="number" class="q-mb-md" prefix="$" />
+                        <q-input outlined v-model.number="ivaCompras.PercepcionesCba" label="Percepciones Cba" type="number" class="q-mb-md" prefix="$"/>
+                        <q-input outlined v-model.number="ivaCompras.PercepcionesIIBB" label="Percepciones IIBB" type="number" class="q-mb-md" prefix="$"/>
+                        <q-input outlined v-model.number="ivaCompras.ImporteTotal" label="Importe Total" type="number" class="q-mb-md" prefix="$" />
                     </div>
                 </div>
 
@@ -104,7 +104,6 @@ export default {
                 cliente: cliente.value && cliente.value.id_Cliente ? cliente.value : null,
                 proveedor: proveedor.value && proveedor.value.id_Proveedor ? proveedor.value : null
             }
-            console.log('Payload a enviar:', payload)
             addIvaCompras(payload)
                 .then(() => {
                     $q.notify({

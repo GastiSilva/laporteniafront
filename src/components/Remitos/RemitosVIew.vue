@@ -1,19 +1,14 @@
 <template>
   <q-layout>
-    <!-- Contenido principal -->
     <q-page-container>
       <div class="q-pa-md">
-        <!-- Vista inicial con los botones -->
         <div v-if="currentView === 'main'" class="q-pa-md flex flex-center">
           <div class="row justify-center q-gutter-md q-ma-xl">
-
             <q-btn @click="setCurrentView('generar')" color="primary" class="q-pa-lg column items-center" rounded>
               <img class="w-[80px] h-[80px] q-mb-lg q-ml-md q-mr-md" src="~assets/file-invoice-dollar-solid.svg"
                 alt="iconLuz" style="filter: invert(1);" />
               <span class="text-white text-bold">Generar Remito</span>
             </q-btn>
-
-
             <q-btn @click="setCurrentView('consultar')" color="secondary" class="q-pa-lg column items-center" rounded>
               <img class="w-[80px] h-[80px] q-mb-lg q-ml-md q-mr-md" src="~assets/buscaricon.svg" alt="iconBuscar"
                 style="filter: invert(1);" />
@@ -22,7 +17,6 @@
           </div>
         </div>
 
-        <!-- Vista de Generar Remito -->
         <div v-if="currentView === 'generar'">
           <h4 class="titulo-rem">Generar Remito</h4>
           <div class="row q-col-gutter-md">
@@ -64,10 +58,10 @@
           <div class="row q-col-gutter-md">
             <div class="col-5">
               <q-input v-model="precioUnitario" label="Precio Unitario" type="number" outlined class="q-ma-xs"
-                :error="!precioUnitario && errorIntento" dense />
+                :error="!precioUnitario && errorIntento" dense prefix="$" />
             </div>
             <div class="col-5">
-              <q-input v-model="subtotal" label="Sub Total" type="number" outlined class="q-ma-xs" readonly dense />
+              <q-input v-model="subtotal" label="Sub Total" type="number" outlined class="q-ma-xs" readonly dense  prefix="$"/>
             </div>
             <div class="col-2">
               <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined class="q-ma-xs" dense
@@ -75,17 +69,11 @@
             </div>
           </div>
 
-
-
-
-          <!-- Botón para agregar el producto a la tabla -->
           <q-btn @click="agregarProducto" label="Agregar Producto" color="primary" class="q-ma-xs" />
-          <!-- <q-btn @click="downloadPDF" label="Descargar Remito PDF" color="primary" class="q-ma-xs" /> -->
           <q-btn @click="enviarRemito" label="Descargar Remito PDF" color="primary" class="q-ma-xs" />
           <q-btn flat label="Volver" text-color="white" class="q-ma-md" @click="setCurrentView('main')" rounded
             style="background-color:#0e1d75;" />
 
-          <!-- Mostrar tabla de productos -->
           <q-table :rows="productos" :columns="columns" row-key="codigo">
             <template v-slot:header="props">
               <q-tr :props="props">
@@ -110,7 +98,6 @@
           </q-banner>
         </div>
 
-        <!-- Vista de Consultar Remito -->
         <div v-if="currentView === 'consultar'">
           <ConsultarRemito :setCurrentView="setCurrentView" />
         </div>
@@ -135,7 +122,6 @@ export default {
   setup() {
     const currentView = ref('main');
     const $q = useQuasar();
-    // Campos principales
     const fecha = ref('');
     const senior = ref('');
     const domicilio = ref('');
@@ -157,7 +143,7 @@ export default {
     const id_producto = ref('');
     const codigo = ref('');
     const producto = ref('');
-    // const products = ref([]);
+
 
     const errorMessage = ref('');
     const errorIntento = ref(false);
@@ -207,8 +193,6 @@ export default {
           precioUnitario: parseFloat(precioUnitario.value),
           subtotal: subtotal.value,
         });
-
-        // Limpiar campos
         selectedProduct.value = null;
         cantidad.value = null;
         precioUnitario.value = '';

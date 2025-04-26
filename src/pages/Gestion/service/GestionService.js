@@ -6,6 +6,10 @@ export const getTableData = async (tableName, fechaDesde = null, fechaHasta = nu
         if (fechaDesde && fechaHasta) {
             params.fechaDesde = fechaDesde;
             params.fechaHasta = fechaHasta;
+        }else if(fechaDesde){
+            params.fechaDesde = fechaDesde;
+        }else if(fechaHasta){
+            params.fechaHasta = fechaHasta;
         }
 
         const response = await api.get(`/datosTablas/${tableName}`, { params });
@@ -56,6 +60,16 @@ export const getProveedores = async () => {
     }
 }
 
+export const getVendedores= async () => {
+    try {
+        const response = await api.get('/vendedores');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching vendedores:', error);
+        throw error;
+    }
+}
+
 export const getEgresos = async () => {
     try {
         const response = await api.get('/egresos');
@@ -85,6 +99,17 @@ export const getStock = async () => {
         throw error;
     }
 }
+
+export const getMateriaPrimas = async () => {
+    try{
+        const response = await api.get("/ObtenerMateriaPrima");
+        return response.data;
+    }catch(error){
+        console.error("Error al traer materia prima:", error);
+        throw error;
+    }
+}
+
 //METODOS AGREGAR
 export const addUsuario = async ({ Usuario, Contrasenia, Mail }) => {
     try {
@@ -140,7 +165,6 @@ export const addCliente = async ({ Nombre, Cuil }) => {
 };
 
 export const addCompra = async ({ compra, materiasPrimas, estadoId }) => {
-    console.log('materiaPrimas', materiasPrimas)
     try {
       const response = await api.post('/GuardarCompra', {
         compra,
@@ -197,6 +221,25 @@ export const addEgresos = async ({ Fecha, Concepto, Comprobante, ImporteTotal })
     }
 };
 
+export const addIngresos = async ({ Fecha, Nombre, Detalle, NroComprobante, Total, Id_Vendedor, Id_Estado, MetodoPago }) => {
+    try {
+        const response = await api.post('/GuardarIngresos', {
+            Fecha,
+            Nombre,
+            Detalle,
+            NroComprobante,
+            Total,
+            Id_Vendedor,
+            Id_Estado,
+            MetodoPago
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error al guardar el ingreso:', error);
+        throw error;
+    }
+};
+
 export const addGastos = async (gasto) => {
     try {
       const response = await api.post('/GuardarGastos', gasto);
@@ -216,6 +259,21 @@ export const addMateriaPrima = async (materia_prima) => {
       throw error;
     }
 }
+
+export const addMPxProducto = async (productoId, materiaPrimaId, cantidadNecesaria) => {
+    try {
+        const response = await api.post('/GuardarMateriaPrimaPorProducto', {
+            productoId,
+            materiaPrimaId,
+            cantidadNecesaria
+        });
+        return response;
+    } catch (error) {
+        console.error('Error al agregar materia prima por producto:', error);
+        throw error;
+    }
+}
+
 //METODOS ELIMINAR 
 export const deleteProveedor = async (id) => {
     try {
@@ -347,10 +405,24 @@ export const editDevolucion = async (id_Devolucion, data) => {
     }
 }
 
+export const editCompras = async ({ idCompra, compra, estadoId }) => {
+    try {
+        const response = await api.put(`/ModificarCompra`, {
+            idCompra,
+            compra,
+            estadoId
+        });
+        return response;
+    } catch (error) {
+        console.error(`Error al modificar la compra con id ${idCompra}:`, error);
+        throw error;
+    }
+};
+
 
 export default {
-    getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, getEgresos, getTipoGastos, getStock, 
+    getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, getEgresos, getTipoGastos, getStock, getMateriaPrimas, getVendedores,
     deleteCliente, deleteProveedor, deleteVendedor, deleteUsuario,
-    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas, addIvaCompras, addEgresos, addGastos, addMateriaPrima,
-    editIngreso, editEgreso, editIvaVentas, editventasMercaderia, editGastos, editIvaCompras, editDevolucion, editProduccion
+    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas, addIvaCompras, addEgresos, addGastos, addMateriaPrima, addMPxProducto, addIngresos,
+    editIngreso, editEgreso, editIvaVentas, editventasMercaderia, editGastos, editIvaCompras, editDevolucion, editProduccion, editCompras
     };

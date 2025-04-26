@@ -15,8 +15,7 @@
                     </template>
                 </q-input>
             </div>
-
-            <!-- Tabla de remitos -->
+            
             <q-table :rows="paginatedRemitos" :columns="columns" row-key="Id_Remito" flat bordered>
                 <template v-slot:header="props">
                     <q-tr :props="props">
@@ -37,8 +36,6 @@
                     </q-td>
                 </template>
             </q-table>
-
-            <!-- Paginador -->
             <div class="row justify-center q-mt-md">
                 <q-pagination v-model="pagination.page" color="grey-8" :max="pagesNumber" size="sm" />
             </div>
@@ -94,10 +91,9 @@ export default {
         };
 
         const deleteRemito = async (id) => {
-            console.log("el id es: ",id);
             try{
                 await eliminarRemito(id);
-                obtenerRemitosData(); // Actualiza la lista de remitos después de eliminar
+                obtenerRemitosData(); 
             }catch (error) {
                 console.error("Error al eliminar el remito:", error);
             }

@@ -11,10 +11,10 @@
                 <div class="text-subtitle1 text-bold text-secondary q-mb-md">Datos del Gasto</div>
 
                 <q-input outlined v-model="gasto.descripcion" label="Descripción" class="q-mb-md" />
-                <q-input outlined v-model.number="gasto.Importe" label="Importe" type="number" class="q-mb-md" />
+                <q-input outlined v-model.number="gasto.Importe" label="Importe" type="number" class="q-mb-md" prefix="$" />
 
                 <q-select outlined v-model="gasto.Id_TipoGastos" :options="tiposGasto" option-value="Id_TipoGastos"
-                    option-label="Tipo_Gasto" label="Tipo de Gasto" class="q-mb-md" />
+                    option-label="Tipo_Gasto" label="Tipo de Gasto" class="q-mb-md"  />
 
                 <q-select outlined v-model="gasto.Id_Egresos" :options="egresos" option-value="Id_Egresos"
                     option-label="Concepto" label="Egreso Asociado" class="q-mb-md" />
@@ -73,7 +73,6 @@ export default {
 
 
                 const response = await addGastos(payload);
-                console.log("respuesta del servidor:", response); 
                 $q.notify({ type: "positive", message: "Gasto guardado correctamente" });
                 limpiarFormulario();
             } catch (error) {
