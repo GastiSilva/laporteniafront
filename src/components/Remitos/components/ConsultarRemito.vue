@@ -8,12 +8,18 @@
                 <q-btn flat label="Volver" text-color="white" class="q-ma-md" @click="goBack" rounded
                     style="background-color:#0e1d75;" />
 
-                <q-input v-model="filter" label="Buscar" outlined dense debounce="300" class="q-mt-md search-input"
+ 
+                <q-input v-model="filter" label="Buscar" outlined dense debounce="300" class="q-mt-md search-input q-mr-lg"
                     style="background-color: white;" :clearable="true">
                     <template #append>
                         <q-icon name="search" />
                     </template>
                 </q-input>
+                <q-input  v-model="fechaDesde" type="date" label="Fecha Desde"
+                outlined dense class="q-mr-lg q-mt-md" />
+            <q-input  v-model="fechaHasta" type="date" label="Fecha Hasta"
+                outlined dense class="q-mr-lg q-mt-md" />    
+
             </div>
             
             <q-table :rows="paginatedRemitos" :columns="columns" row-key="Id_Remito" flat bordered>
@@ -44,7 +50,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { obtenerRemitos, obtenerPDFRemitos, eliminarRemito } from "../service/RemitosService";
 
 export default {
@@ -68,11 +74,12 @@ export default {
             { name: "estado", label: "Estado", align: "center", field: "Estado" },
             { name: "actions", label: "Acciones", align: "right" },
         ];
-
+        const fechaDesde = ref(null);
+        const fechaHasta = ref(null);
 
         const obtenerRemitosData = async () => {
             try {
-                const response = await obtenerRemitos();
+                const response = await obtenerRemitos(fechaDesde.value, fechaHasta.value);
                 remitos.value = response.map(remito => ({
                     Id_Remito: remito.Id_Remito,
                     Senior: remito.Senior,
@@ -129,6 +136,12 @@ export default {
             return filteredRemitos.value.slice(start, end);
         });
 
+        watch([fechaDesde, fechaHasta], ([newFechaDesde, newFechaHasta]) => {
+            console.log("Fecha Desde:", newFechaDesde);
+            console.log("Fecha Hasta:", newFechaHasta);
+            obtenerRemitosData();
+        });
+
         onMounted(() => {
             obtenerRemitosData();
         });
@@ -144,7 +157,9 @@ export default {
             deleteRemito,
             tablesRemitos,
             downloadRemito,
-            obtenerRemitosData
+            obtenerRemitosData,
+            fechaDesde,
+            fechaHasta,
         };
     },
 };
