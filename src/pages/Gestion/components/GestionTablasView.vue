@@ -11,6 +11,7 @@
                 @click="handleEliminar" />
             <q-btn v-if="selectedTable && !permitirModificar" label="Modificar" color="primary" icon="edit"
                 @click="handleModificar" />
+            <q-btn v-if="selectedTable && !verHistorial" label="Ver historial" color="primary" icon="history" @click="abrirHistorial"/>
         </q-card-actions>
         <table>
             <thead>
@@ -47,10 +48,11 @@
         @volver="volverAGestion" />
     <FormularioGastos v-if="currentView === 'formularioGastos'" :selectedTable="selectedTable" :columns="columns"
         @volver="volverAGestion" />
-    <FormularioMateriaPrimaPorProducto v-if="currentView === 'formularioMateriaPrimaPorProducto'" :selectedTable="selectedTable" :columns="columns"
-        @volver="volverAGestion" />
+    <FormularioMateriaPrimaPorProducto v-if="currentView === 'formularioMateriaPrimaPorProducto'"
+        :selectedTable="selectedTable" :columns="columns" @volver="volverAGestion" />
     <FormularioIngresos v-if="currentView === 'formularioIngresos'" :selectedTable="selectedTable" :columns="columns"
         @volver="volverAGestion" />
+    <HistorialStock v-if="currentView === 'historialStock'" :selectedTable="selectedTable"  @volver="volverAGestion"/>
 </template>
 
 <script>
@@ -67,6 +69,7 @@ import FormularioGastos from './FormularioGastos.vue';
 import FormularioIvaCompras from './FormularioIvaCompras.vue';
 import FormularioMateriaPrimaPorProducto from './FormularioMPxP.vue';
 import FormularioIngresos from './FormularioIngresos.vue';
+import HistorialStock from './HistorialStock.vue';
 import { useQuasar } from 'quasar';
 
 export default {
@@ -79,7 +82,8 @@ export default {
         FormularioEgresos,
         FormularioGastos,
         FormularioMateriaPrimaPorProducto,
-        FormularioIngresos
+        FormularioIngresos,
+        HistorialStock
     },
     props: {
         selectedTable: {
@@ -99,45 +103,48 @@ export default {
         const mostrarFormulario = ref(false);
         const fechaDesde = ref(null);
         const fechaHasta = ref(null);
+        const rowDatas = ref([]);
 
         const obtenerDatosTablas = async () => {
             try {
                 const response = await getTableData(props.selectedTable, fechaDesde.value, fechaHasta.value);
-                const data = response.data;
+                let data = response.data;
+                rowDatas.value = data;
+                console.log('Response:', response.data);
+                if (['Produccion', 'Devolucion', 'VentasMercaderia'].includes(props.selectedTable)) {
+                    const agrupado = {};
+
+                    for (const item of data) {
+                        const key = item.Nombre;
+                        if (!agrupado[key]) {
+                            agrupado[key] = { ...item };
+                        } else {
+                            agrupado[key].Cantidad += item.Cantidad;
+
+
+                            const fechaActual = new Date(agrupado[key].Fecha);
+                            const fechaNueva = new Date(item.Fecha);
+                            if (fechaNueva < fechaActual) {
+                                agrupado[key].Fecha = item.Fecha;
+                            }
+                        }
+                    }
+                    data = Object.values(agrupado);
+                }
 
                 if (data.length > 0) {
                     columns.value = Object.keys(data[0]).filter((column, index) => {
-                        if (index === 0) {
-                            return true;
-                        }
-                        if (props.selectedTable === 'Ingresos' && column.toLowerCase() === 'cuit') {
-                            return false;
-                        }
-                        if (column.toLowerCase() === 'contrasenia') {
-                            return false;
-                        }
+                        if (index === 0) return true;
+                        if (props.selectedTable === 'Ingresos' && column.toLowerCase() === 'cuit') return false;
+                        if (column.toLowerCase() === 'contrasenia') return false;
                         return !column.toLowerCase().startsWith('id_');
                     });
 
                     const columnasAFormatear = [
-                        'Importe',
-                        'ImporteTotal',
-                        'Total',
-                        'Neto',
-                        'IVA21',
-                        'IVA10_5',
-                        'PercIVA',
-                        'IngrBrutosRetEfect',
-                        'ConceptosNoAgravados',
-                        'Flete10_5',
-                        'PercepcionesCba',
-                        'PercepcionesIIBB',
-                        'PercepcionIVA',
-                        'PercepcionesMuniCba',
-                        'Flete',
-                        'Retenciones',
-                        'PrecioUnitario',
-                        'PrecioTotal'
+                        'Importe', 'ImporteTotal', 'Total', 'Neto', 'IVA21', 'IVA10_5',
+                        'PercIVA', 'IngrBrutosRetEfect', 'ConceptosNoAgravados', 'Flete10_5',
+                        'PercepcionesCba', 'PercepcionesIIBB', 'PercepcionIVA',
+                        'PercepcionesMuniCba', 'Flete', 'Retenciones', 'PrecioUnitario', 'PrecioTotal'
                     ];
 
                     rows.value = data.map(row => {
@@ -160,29 +167,20 @@ export default {
                         return filasFiltradas;
                     });
 
-    
                     if (props.selectedTable === 'MateriaPrima') {
-                        columns.value.push('Stock'); 
-                        const stockData = await getStock(); 
+                        columns.value.push('Stock');
+                        const stockData = await getStock();
                         rows.value.forEach(row => {
-
                             const stockItem = stockData.data.find(stock => stock.id_MateriaPrima === row.id_MateriaPrima);
                             row.Stock = stockItem ? Number(stockItem.totalCantidad) : 0;
                         });
-
                     }
 
                 } else {
                     columns.value = data.columns.filter((column, index) => {
-                        if (index === 0) {
-                            return true;
-                        }
-                        if (props.selectedTable === 'Ingresos' && column.toLowerCase() === 'cuit') {
-                            return false;
-                        }
-                        if (column.toLowerCase() === 'contrasenia') {
-                            return false;
-                        }
+                        if (index === 0) return true;
+                        if (props.selectedTable === 'Ingresos' && column.toLowerCase() === 'cuit') return false;
+                        if (column.toLowerCase() === 'contrasenia') return false;
                         return !column.toLowerCase().startsWith('id_');
                     });
                     rows.value = [];
@@ -192,6 +190,7 @@ export default {
                 console.error('Error fetching data:', error);
             }
         };
+
 
         const esEditable = (rowIndex, column) => {
             return filaEditada.value === rowIndex && columnaEditada.value === column;
@@ -226,19 +225,32 @@ export default {
 
         const permitirEliminar = computed(() => {
             return (props.selectedTable === 'Compras' || props.selectedTable === 'Produccion' || props.selectedTable === 'VentasMercaderia' || props.selectedTable === 'MateriaPrima' ||
-                props.selectedTable === 'Ingresos' || props.selectedTable === 'Egresos' || props.selectedTable === 'IVAVentas' ||
+                props.selectedTable === 'Ingresos' || props.selectedTable === 'Egresos' || props.selectedTable === 'IVAVentas' || props.selectedTable === 'Productos' ||
                 props.selectedTable === 'IVACompras' || props.selectedTable === 'Gastos' || props.selectedTable === 'Devolucion' || props.selectedTable === 'MateriaPrimaPorProducto');
         });
 
         const permitirModificar = computed(() => {
-            return (props.selectedTable === 'MateriaPrima' || props.selectedTable === 'MateriaPrimaPorProducto'
-                || props.selectedTable === 'Clientes' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores' || props.selectedTable === 'Usuarios' 
+            return (props.selectedTable === 'MateriaPrima' || props.selectedTable === 'MateriaPrimaPorProducto'|| 
+            props.selectedTable === 'Clientes' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores' || props.selectedTable === 'Productos' || props.selectedTable === 'Usuarios' 
             );
         });
 
         const permitirFiltrar = computed(() => {
             return (props.selectedTable === 'Clientes' || props.selectedTable === 'MateriaPrimaPorProducto' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores' || props.selectedTable === 'Gastos' || props.selectedTable === 'Usuarios' || props.selectedTable === 'MateriaPrima');
         });
+
+        const verHistorial = computed(() => {
+            return (props.selectedTable === 'Productos' || props.selectedTable === 'Clientes' || props.selectedTable === 'MateriaPrimaPorProducto' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Ingresos' ||
+             props.selectedTable === 'Vendedores' || props.selectedTable === 'Gastos' || props.selectedTable === 'Usuarios' || props.selectedTable === 'MateriaPrima' 
+             || props.selectedTable === 'Compras' || props.selectedTable === 'Egresos' || props.selectedTable === 'IVAVentas' || props.selectedTable === 'IVACompras' 
+            );
+        });
+
+        const abrirHistorial = () => {
+            if(props.selectedTable === 'Produccion' || props.selectedTable === 'Devolucion' || props.selectedTable === 'VentasMercaderia') {
+                currentView.value = 'historialStock';
+            } 
+        }
 
         const consularTabla = () => {
             if (props.selectedTable === 'Compras') {
@@ -253,11 +265,13 @@ export default {
                 currentView.value = 'formularioIvaCompras';
             } else if (props.selectedTable === 'IVAVentas') {
                 currentView.value = 'formularioIvaVentas';
-            }else if(props.selectedTable === 'MateriaPrimaPorProducto'){
+            } else if (props.selectedTable === 'MateriaPrimaPorProducto') {
                 currentView.value = 'formularioMateriaPrimaPorProducto';
-            }else if(props.selectedTable === 'Ingresos'){
+            } else if (props.selectedTable === 'Ingresos') {
                 currentView.value = 'formularioIngresos';
-            }
+            } else if(props.selectedTable === 'Produccion' || props.selectedTable === 'Devolucion' || props.selectedTable === 'VentasMercaderia') {
+                currentView.value = 'historialStock';
+            } 
             else {
                 currentView.value = 'formularioAgregar';
             }
@@ -629,6 +643,7 @@ export default {
         return {
             columns,
             rows,
+            rowDatas,
             currentView,
             getTableData,
             consularTabla,
@@ -638,6 +653,8 @@ export default {
             permitirModificar,
             permitirEliminar,
             permitirFiltrar,
+            verHistorial,
+            abrirHistorial,
             guardarEdit,
             editValue,
             filaSeleccionada,

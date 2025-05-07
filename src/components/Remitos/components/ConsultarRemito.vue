@@ -2,26 +2,20 @@
     <q-page-container>
         <div @click.stop>
             <h4 class="q-mb-md q-mt-md">Consultar Remito</h4>
-
             <div justify-between class="row ">
-
                 <q-btn flat label="Volver" text-color="white" class="q-ma-md" @click="goBack" rounded
                     style="background-color:#0e1d75;" />
 
- 
-                <q-input v-model="filter" label="Buscar" outlined dense debounce="300" class="q-mt-md search-input q-mr-lg"
-                    style="background-color: white;" :clearable="true">
+                <q-input v-model="filter" label="Buscar" outlined dense 
+                    class="q-mt-md search-input q-mr-lg" style="background-color: white;" clearable>
                     <template #append>
                         <q-icon name="search" />
                     </template>
                 </q-input>
-                <q-input  v-model="fechaDesde" type="date" label="Fecha Desde"
-                outlined dense class="q-mr-lg q-mt-md" />
-            <q-input  v-model="fechaHasta" type="date" label="Fecha Hasta"
-                outlined dense class="q-mr-lg q-mt-md" />    
-
+                <q-input v-model="fechaDesde" type="date" label="Fecha Desde" outlined dense class="q-mr-lg q-mt-md" />
+                <q-input v-model="fechaHasta" type="date" label="Fecha Hasta" outlined dense class="q-mr-lg q-mt-md" />
             </div>
-            
+
             <q-table :rows="paginatedRemitos" :columns="columns" row-key="Id_Remito" flat bordered>
                 <template v-slot:header="props">
                     <q-tr :props="props">
@@ -51,6 +45,7 @@
 
 <script>
 import { ref, computed, onMounted, watch } from "vue";
+import { useQuasar } from 'quasar';
 import { obtenerRemitos, obtenerPDFRemitos, eliminarRemito } from "../service/RemitosService";
 
 export default {
@@ -61,8 +56,8 @@ export default {
         },
     },
     setup(props) {
+        const $q = useQuasar();
         const remitos = ref([]);
-
         const filter = ref("");
         const pagination = ref({ page: 1, rowsPerPage: 5 });
         const tablesRemitos = ref([]);
@@ -98,18 +93,35 @@ export default {
         };
 
         const deleteRemito = async (id) => {
-            try{
-                await eliminarRemito(id);
-                obtenerRemitosData(); 
-            }catch (error) {
-                console.error("Error al eliminar el remito:", error);
-            }
+            $q.dialog({
+                title: '¿Deseás eliminar este remito?',
+                ok: {
+                    label: 'Sí, eliminar',
+                    color: 'negative',
+                    flat: false,
+                    unelevated: true
+                },
+                cancel: {
+                    label: 'Cancelar',
+                    color: 'primary',
+                    flat: true
+                },
+                persistent: true
+            }).onOk(async () => {
+                try {
+                    await eliminarRemito(id);
+                    obtenerRemitosData();
+                } catch (error) {
+                    console.error("Error al eliminar el remito:", error);
+                }
+            });
         };
 
+
         const downloadRemito = async (id) => {
-            try{
+            try {
                 await obtenerPDFRemitos(id);
-            }catch{
+            } catch {
                 console.error("Error al descargar el remito");
             }
         };
@@ -137,8 +149,6 @@ export default {
         });
 
         watch([fechaDesde, fechaHasta], ([newFechaDesde, newFechaHasta]) => {
-            console.log("Fecha Desde:", newFechaDesde);
-            console.log("Fecha Hasta:", newFechaHasta);
             obtenerRemitosData();
         });
 

@@ -70,7 +70,8 @@
           </div>
 
           <q-btn @click="agregarProducto" label="Agregar Producto" color="primary" class="q-ma-xs" />
-          <q-btn @click="enviarRemito" label="Descargar Remito PDF" color="primary" class="q-ma-xs" />
+          <q-btn @click="enviarRemito" label="Descargar Remito}
+          " color="primary" class="q-ma-xs" />
           <q-btn flat label="Volver" text-color="white" class="q-ma-md" @click="setCurrentView('main')" rounded
             style="background-color:#0e1d75;" />
 

@@ -110,6 +110,55 @@ export const getMateriaPrimas = async () => {
     }
 }
 
+export const getProduccion = async ({ fechaDesde, fechaHasta, idProducto }) => {
+    try {
+        const response = await api.get('/produccion', {
+            params: {
+                fechaDesde,
+                fechaHasta,
+                idProducto,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching produccion:', error);
+        throw error;
+    }
+};
+
+export const getDevolucion = async ({ fechaDesde, fechaHasta, idProducto }) => {
+    try {
+        const response = await api.get('/devolucion', {
+            params: {
+                fechaDesde,
+                fechaHasta,
+                idProducto,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching devolucion:', error);
+        throw error;
+    }
+};
+
+export const getVentasMercaderia = async ({ fechaDesde, fechaHasta, idProducto }) => {
+    try {
+        const response = await api.get('/ventasMercaderia', {
+            params: {
+                fechaDesde,
+                fechaHasta,
+                idProducto,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching devolucion:', error);
+        throw error;
+    }
+};
+
+
 //METODOS AGREGAR
 export const addUsuario = async ({ Usuario, Contrasenia, Mail }) => {
     try {
@@ -117,6 +166,19 @@ export const addUsuario = async ({ Usuario, Contrasenia, Mail }) => {
             Usuario,
             Contrasenia,
             Mail
+        });
+        return response;
+    } catch (error) {
+        console.error('Error al agregar usuario:', error);
+        throw error;
+    }
+};
+
+export const addProducto = async ({ Codigo, Nombre }) => {
+    try {
+        const response = await api.post('/CrearProducto', {
+            Codigo,
+            Nombre,
         });
         return response;
     } catch (error) {
@@ -421,8 +483,8 @@ export const editCompras = async ({ idCompra, compra, estadoId }) => {
 
 
 export default {
-    getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, getEgresos, getTipoGastos, getStock, getMateriaPrimas, getVendedores,
+    getTableData , getFormsData, getCompraFormData, getClientes, getProveedores, getEgresos, getTipoGastos, getStock, getMateriaPrimas, getVendedores, getProduccion, getDevolucion, getVentasMercaderia,
     deleteCliente, deleteProveedor, deleteVendedor, deleteUsuario,
-    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas, addIvaCompras, addEgresos, addGastos, addMateriaPrima, addMPxProducto, addIngresos,
+    addUsuario, addProveedor, addVendedor, addCliente, addCompra, addIvaVentas, addIvaCompras, addEgresos, addGastos, addMateriaPrima, addMPxProducto, addIngresos, addProducto,
     editIngreso, editEgreso, editIvaVentas, editventasMercaderia, editGastos, editIvaCompras, editDevolucion, editProduccion, editCompras
     };
