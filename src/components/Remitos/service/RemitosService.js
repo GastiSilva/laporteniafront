@@ -19,15 +19,21 @@ export const obtenerEstados = async () => {
   }
 }
 
-export const obtenerRemitos = async () => {
+export const obtenerRemitos = async (fechaDesde, fechaHasta) => {
   try {
-    const response = await api.get(`/obtenerRemitos`);
+    const params = {};
+
+    if (fechaDesde) params.fechaDesde = fechaDesde;
+    if (fechaHasta) params.fechaHasta = fechaHasta;
+
+    const response = await api.get('/obtenerRemitos', { params });
+
     return response.data;
-    
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
-}
+};
+
 
 export const obtenerPDFRemitos = async (id) => {
   try {

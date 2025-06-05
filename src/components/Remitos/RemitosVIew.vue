@@ -1,19 +1,14 @@
 <template>
   <q-layout>
-    <!-- Contenido principal -->
     <q-page-container>
       <div class="q-pa-md">
-        <!-- Vista inicial con los botones -->
         <div v-if="currentView === 'main'" class="q-pa-md flex flex-center">
           <div class="row justify-center q-gutter-md q-ma-xl">
-
             <q-btn @click="setCurrentView('generar')" color="primary" class="q-pa-lg column items-center" rounded>
               <img class="w-[80px] h-[80px] q-mb-lg q-ml-md q-mr-md" src="~assets/file-invoice-dollar-solid.svg"
                 alt="iconLuz" style="filter: invert(1);" />
               <span class="text-white text-bold">Generar Remito</span>
             </q-btn>
-
-
             <q-btn @click="setCurrentView('consultar')" color="secondary" class="q-pa-lg column items-center" rounded>
               <img class="w-[80px] h-[80px] q-mb-lg q-ml-md q-mr-md" src="~assets/buscaricon.svg" alt="iconBuscar"
                 style="filter: invert(1);" />
@@ -22,7 +17,6 @@
           </div>
         </div>
 
-        <!-- Vista de Generar Remito -->
         <div v-if="currentView === 'generar'">
           <h4 class="titulo-rem">Generar Remito</h4>
           <div class="row q-col-gutter-md">
@@ -37,11 +31,20 @@
                 </q-popup-proxy>
               </q-select>
             </div>
+            <div class="col-5">
+              <q-select outlined v-model="selectedCliente" label="Seleccionar Cliente" :options="filteredClientes" dense
+                option-label="Nombre" use-input input-debounce="300" @filter="filterClientes" class="q-mt-xs"
+                clearable />
+            </div>
+            <div class="col-2 ">
+              <q-btn label="Agregar" color="primary" icon="add" class="q-mt-xs" @click="agregarCliente" />
+            </div>
           </div>
 
           <div class="row q-col-gutter-md">
             <div class="col-6">
-              <q-input v-model="senior" label="Señor" outlined class="q-ma-xs" :error="!senior && errorIntento" dense />
+              <q-input v-model="cliente.Nombre" label="Señor" outlined class="q-ma-xs" :error="!senior && errorIntento"
+                dense />
             </div>
             <div class="col-6">
               <q-input v-model="domicilio" label="Domicilio" outlined class="q-ma-xs"
@@ -64,10 +67,11 @@
           <div class="row q-col-gutter-md">
             <div class="col-5">
               <q-input v-model="precioUnitario" label="Precio Unitario" type="number" outlined class="q-ma-xs"
-                :error="!precioUnitario && errorIntento" dense />
+                :error="!precioUnitario && errorIntento" dense prefix="$" />
             </div>
             <div class="col-5">
-              <q-input v-model="subtotal" label="Sub Total" type="number" outlined class="q-ma-xs" readonly dense />
+              <q-input v-model="subtotal" label="Sub Total" type="number" outlined class="q-ma-xs" readonly dense
+                prefix="$" />
             </div>
             <div class="col-2">
               <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined class="q-ma-xs" dense
@@ -75,17 +79,11 @@
             </div>
           </div>
 
-
-
-
-          <!-- Botón para agregar el producto a la tabla -->
           <q-btn @click="agregarProducto" label="Agregar Producto" color="primary" class="q-ma-xs" />
-          <!-- <q-btn @click="downloadPDF" label="Descargar Remito PDF" color="primary" class="q-ma-xs" /> -->
-          <q-btn @click="enviarRemito" label="Descargar Remito PDF" color="primary" class="q-ma-xs" />
+          <q-btn @click="enviarRemito" label="Descargar Remito" color="primary" class="q-ma-xs" />
           <q-btn flat label="Volver" text-color="white" class="q-ma-md" @click="setCurrentView('main')" rounded
             style="background-color:#0e1d75;" />
 
-          <!-- Mostrar tabla de productos -->
           <q-table :rows="productos" :columns="columns" row-key="codigo">
             <template v-slot:header="props">
               <q-tr :props="props">
@@ -110,9 +108,11 @@
           </q-banner>
         </div>
 
-        <!-- Vista de Consultar Remito -->
         <div v-if="currentView === 'consultar'">
           <ConsultarRemito :setCurrentView="setCurrentView" />
+        </div>
+        <div v-if="currentView === 'formularioClientes'">
+          <FormularioClientes @submit="handleSubmit" @agregar-completado="volverAGestion" @volver="volverAGestion" />
         </div>
       </div>
     </q-page-container>
@@ -125,17 +125,19 @@ import ConsultarRemito from './components/ConsultarRemito.vue';
 import { RemitoPDFAPI } from 'src/pages/AdminHome/service/AdminAPI';
 import { crearRemito, obtenerEstados } from './service/RemitosService';
 import { fetchProducts } from "../Tablas/service/AddDatosAPI";
+import { getClientes } from 'src/pages/Gestion/service/GestionService';
 import { useQuasar } from 'quasar';
+import FormularioClientes from '../../pages/Gestion/components/FormularioClientes.vue';
 
 
 export default {
   components: {
     ConsultarRemito,
+    FormularioClientes
   },
   setup() {
     const currentView = ref('main');
     const $q = useQuasar();
-    // Campos principales
     const fecha = ref('');
     const senior = ref('');
     const domicilio = ref('');
@@ -157,8 +159,14 @@ export default {
     const id_producto = ref('');
     const codigo = ref('');
     const producto = ref('');
-    // const products = ref([]);
 
+    const cliente = ref({
+      Nombre: '',
+      Cuil: ''
+    })
+    const clientes = ref([])
+    const filteredClientes = ref([])
+    const selectedCliente = ref(null)
     const errorMessage = ref('');
     const errorIntento = ref(false);
 
@@ -173,6 +181,8 @@ export default {
     ]);
 
     const setCurrentView = (view) => {
+      selectedCliente.value = null;
+      cliente.value.Nombre = '';
       currentView.value = view;
     };
 
@@ -207,8 +217,6 @@ export default {
           precioUnitario: parseFloat(precioUnitario.value),
           subtotal: subtotal.value,
         });
-
-        // Limpiar campos
         selectedProduct.value = null;
         cantidad.value = null;
         precioUnitario.value = '';
@@ -226,15 +234,16 @@ export default {
     };
 
     const enviarRemito = async () => {
-      if (!validarCampos([senior.value, domicilio.value, fecha.value]) || productos.value.length === 0) {
+      // senior.value = cliente.value.Nombre;
+      if (!validarCampos([cliente.value.Nombre, domicilio.value, fecha.value]) || productos.value.length === 0) {
         errorMessage.value = 'Por favor, complete todos los campos y agregue al menos un producto.';
         return;
       }
 
-        const productosTransformados = productos.value.map(prod => {
+      const productosTransformados = productos.value.map(prod => {
         const productoEncontrado = allProducts.value.find(p => p.Codigo === prod.codigo);
         return {
-          Id_Producto: productoEncontrado ? productoEncontrado.Id_Producto : null, 
+          Id_Producto: productoEncontrado ? productoEncontrado.Id_Producto : null,
           Cantidad: prod.cantidad,
           PrecioUnit: prod.precioUnitario,
           PrecioTotal: prod.precioUnitario * prod.cantidad
@@ -242,7 +251,7 @@ export default {
       });
 
       const remitoData = {
-        Senior: senior.value,
+        Senior: cliente.value.Nombre,
         Domicilio: domicilio.value,
         Fecha: fecha.value,
         Id_Estado: selectedEstado.value.value,
@@ -254,16 +263,18 @@ export default {
       try {
         const response = await crearRemito(remitoData);;
         $q.notify({
-                    type: "positive",
-                    message: "Remito creado con éxito.",
-                    position: "top",
-                });
-        
-        senior.value = '';
+          type: "positive",
+          message: "Remito creado con éxito.",
+          position: "top",
+        });
+
+        selectedCliente.value = null;
+        cliente.value.Nombre = '';
         domicilio.value = '';
         fecha.value = '';
         productos.value = [];
-        
+        selectedEstado.value = null;
+
         const id_remito = response.remito?.Id_Remito;
         await downloadPDF(id_remito);
 
@@ -271,7 +282,7 @@ export default {
         console.error('Error al crear el remito:', error);
         errorMessage.value = 'Error al crear el remito.';
       }
-  };
+    };
 
 
     const deleteProducto = (codigo) => {
@@ -306,10 +317,10 @@ export default {
     const cargarProductos = async () => {
       try {
         loading.value = true;
-       
+
         const productos = await fetchProducts();
         allProducts.value = productos;
-        
+
         filteredProductsOptions.value = productos.map((product) => ({
           label: product.Nombre,
           value: product.Id_Producto,
@@ -318,10 +329,10 @@ export default {
       } catch (error) {
         console.error("Error al cargar productos:", error);
         $q.notify({
-                    type: "negative",
-                    message: "No se pudieron cargar los productos.",
-                    position: "top",
-                });
+          type: "negative",
+          message: "No se pudieron cargar los productos.",
+          position: "top",
+        });
       } finally {
         loading.value = false;
       }
@@ -341,7 +352,57 @@ export default {
     });
 
 
+    const cargarClientes = async () => {
+      try {
+        const response = await getClientes();
+        clientes.value = response || [];
+        filteredClientes.value = [...clientes.value];
+      } catch (error) {
+        console.error('Error al cargar clientes:', error)
+      }
+    }
+
+    const filterClientes = (val, update) => {
+      if (!val) {
+        update(() => {
+          filteredClientes.value = [...clientes.value]
+        })
+        return
+      }
+
+      update(() => {
+        const needle = val.toLowerCase()
+        filteredClientes.value = clientes.value.filter(cliente =>
+          cliente.Nombre.toLowerCase().includes(needle)
+        )
+      })
+    }
+
+    watch(selectedCliente, (newValue) => {
+      if (newValue) {
+        const clienteSeleccionado = clientes.value.find(cliente => cliente.Nombre === newValue.Nombre)
+        if (clienteSeleccionado) {
+          cliente.value = { ...clienteSeleccionado }
+        } else {
+          cliente.value = { Nombre: '', Cuil: '' }
+        }
+      } else {
+        cliente.value = { Nombre: '', Cuil: '' }
+      }
+    })
+
+    const agregarCliente = () => {
+      currentView.value = 'formularioClientes';
+    }
+
+    const volverAGestion = () => {
+
+      currentView.value = 'generar';
+      cargarClientes();
+    };
+
     onMounted(() => {
+      cargarClientes();
       cargarEstados();
       cargarProductos();
     });
@@ -372,7 +433,14 @@ export default {
       filterProducts,
       selectedProduct,
       cargarProductos,
-      filteredProductsOptions
+      filteredProductsOptions,
+      cliente,
+      clientes,
+      filteredClientes,
+      selectedCliente,
+      filterClientes,
+      agregarCliente,
+      volverAGestion
     };
   },
 };

@@ -72,13 +72,7 @@ export default {
         const fechaDesde = ref(null);
         const fechaHasta = ref(null);
 
-        watch(fechaDesde, (newValue) => {
-            console.log("Fecha Desde actualizada: ", newValue);
-        });
-
-        watch(fechaHasta, (newValue) => {
-            console.log("Fecha Hasta actualizada: ", newValue);
-        });
+    
         const exportData = () => {
           
         };

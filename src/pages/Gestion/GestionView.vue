@@ -1,6 +1,6 @@
 <template>
     <div class="exportar-datos-page">
-        <h5 class="q-mb-md q-mt-md">Gestionar Datos</h5>
+        <h5 class="q-mb-xs q-mt-xs">Gestionar Datos</h5>
         <div class="row">
             <div class="col-3">
                 <q-card-section>

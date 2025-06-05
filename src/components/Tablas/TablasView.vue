@@ -71,7 +71,7 @@ export default {
         const addedProducts = ref([]);
 
         const onSelectUpdate = (val) => {
-            console.log("Valor seleccionado:", val);
+            // console.log("Valor seleccionado:", val);
         };
 
 
@@ -95,6 +95,7 @@ export default {
                         cantidad: newProduct.value.cantidad,
                         fecha: filters.value.fecha || new Date().toISOString().slice(0, 10),
                     });
+                
                     selectedProduct.value = null;
                     newProduct.value.cantidad = null;
                 } else {
@@ -206,7 +207,6 @@ export default {
                 return;
             }
             try {
-                console.log("addedProducts.value", addedProducts.value);
                 const productos = addedProducts.value.map(
                     ({ producto, cantidad, fecha }) => ({
                         nombre: producto,

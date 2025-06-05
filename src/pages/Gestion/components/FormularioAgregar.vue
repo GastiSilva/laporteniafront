@@ -29,7 +29,7 @@
 
 <script>
 import { ref, watch, computed, onMounted } from 'vue';
-import { getFormsData, addUsuario, addProveedor, addVendedor, addCliente, addEgresos } from '../service/GestionService';
+import { getFormsData, addUsuario, addProveedor, addVendedor, addCliente, addEgresos, addProducto } from '../service/GestionService';
 
 
 export default {
@@ -130,7 +130,9 @@ export default {
           await addCliente(formData.value);
         }else if( props.selectedTable === 'Egresos') {
           await addEgresos(formData.value);
-        }
+        }else if(props.selectedTable === 'Productos') {
+          await addProducto(formData.value);
+        } 
         emit('agregar-completado');
       } catch (error) {
         console.error('Error al agregar:', error);

@@ -12,41 +12,46 @@
 
                 <div class="row q-mb-md q-mt-md">
                     <q-input outlined v-model="compra.Factura_N" label="Factura N°" class="col-4 q-mr-md " />
-                    <q-input outlined v-model.number="compra.Importe" label="Importe" type="number" class="col-7" />
+                    <q-input outlined v-model.number="compra.Importe" label="Importe" type="number" class="col-7" 
+                        prefix="$" :decimals="2" />
                 </div>
 
                 <q-input outlined v-model="compra.Marca" label="Marca" class="q-mb-md q-mt-md col-11" />
 
                 <div class="row q-mb-md">
-                    <q-input outlined v-model.number="compra.IVA21" label="IVA 21%" type="number" class="col-3 q-mr-md" />
-                    <q-input outlined v-model.number="compra.IVA10_5" label="IVA 10.5%" type="number" class="col-4 q-mr-md" />
-                    <q-input outlined v-model.number="compra.PercepcionIVA" label="Percepciones IVA" type="number" class="col-4" />
+                    <q-input outlined v-model.number="compra.IVA21" label="IVA 21%" type="number"
+                        class="col-3 q-mr-md" prefix="$" />
+                    <q-input outlined v-model.number="compra.IVA10_5" label="IVA 10.5%" type="number"
+                        class="col-4 q-mr-md" prefix="$"/>
+                    <q-input outlined v-model.number="compra.PercepcionIVA" label="Percepciones IVA" type="number"
+                        class="col-4" prefix="$"/>
                 </div>
 
                 <div class="row q-mb-md">
-                    <q-input outlined v-model.number="compra.PercepcionesMuniCba" label="Percepciones Municipales Córdoba" type="number" class="col-6 q-mr-md" />
-                    <q-input outlined v-model.number="compra.Flete" label="Flete" type="number" class="col-5" />
+                    <q-input outlined v-model.number="compra.PercepcionesMuniCba"
+                        label="Percepciones Municipales Córdoba" type="number" class="col-6 q-mr-md" prefix="$"/>
+                    <q-input outlined v-model.number="compra.Flete" label="Flete" type="number" class="col-5"  prefix="$"/>
                 </div>
 
                 <q-select v-model="selectedEstado" :options="estadoOptions" label="Estado" outlined clearable
                     :error="!selectedEstado && errorIntento" />
 
-
-
-                <!-- 🌾 Datos de Materia Prima -->
-
                 <div class="text-subtitle1 text-bold text-secondary q-mb-md q-mt-md">Datos de Materia Prima</div>
 
+                <q-select v-model="selectedMateriaPrima" :options="materiaPrimaOptions" label="Materia Prima"
+                outlined clearable :error="!selectedMateriaPrima && errorIntento" class="col-6 q-mr-md" />
                 <div class="row q-mt-md">
-                    <q-input v-model="nuevaMateriaPrima.Nombre" outlined label="Nombre" class="col-6 q-mr-md" />
+                    
                     <q-input v-model.number="nuevaMateriaPrima.Cantidad" outlined label="Cantidad" type="number"
-                        class="col-3" />
+                        class="col-3 q-mr-md" />
+                    <q-input v-model.number="nuevaMateriaPrima.PrecioUnitario" outlined label="Precio Unitario" type="number"
+                        class="col-3" prefix="$"/>
                     <q-btn label="Agregar" color="primary" @click="agregarMateriaPrima" dense rounded
                         class="col-2 q-ml-md q-pa-xs" />
                 </div>
                 <q-list bordered separator v-if="materiasPrimas.length" class="q-mt-md">
                     <q-item v-for="(mp, index) in materiasPrimas" :key="index">
-                        <q-item-section>{{ mp.Nombre }} - {{ mp.Cantidad }} unidades</q-item-section>
+                        <q-item-section>{{ mp.Nombre }} - Cantidad: {{ mp.Cantidad }} - Precio Unitario: ${{mp.PrecioUnitario}}</q-item-section>
                         <q-item-section side>
                             <q-btn icon="delete" flat color="negative" @click="eliminarMateriaPrima(index)" />
                         </q-item-section>
@@ -66,7 +71,7 @@
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { obtenerEstados } from 'src/components/Remitos/service/RemitosService'
-import { addCompra } from '../service/GestionService'
+import { addCompra, getMateriaPrimas } from '../service/GestionService'
 
 export default {
     name: 'FormularioCompras',
@@ -89,15 +94,18 @@ export default {
         const nuevaMateriaPrima = ref({
             Nombre: '',
             Cantidad: null,
+            PrecioUnitario: null,
         })
 
-        const materiasPrimas = ref([]) // ✅ muchas materias primas
-
+        const materiasPrimas = ref([])
         const selectedEstado = ref(null)
+        const selectedMateriaPrima = ref(null)
         const estadoOptions = ref([])
+        const materiaPrimaOptions = ref([])
 
         onMounted(() => {
-            cargarEstados()
+            cargarEstados();
+            cargarMateriaPrimas();
         })
 
         const cargarEstados = async () => {
@@ -112,14 +120,33 @@ export default {
             }
         }
 
+        const cargarMateriaPrimas = async () => {
+            try {
+                const response = await getMateriaPrimas()
+                const materiasPrimas = response.data
+                materiaPrimaOptions.value = materiasPrimas.map(materia => ({
+                    label: materia.Nombre,
+                    value: materia.id_MateriaPrima,
+                }))
+            } catch (error) {
+                console.error('Error al cargar las materias primas:', error)
+            }
+        }
+
         const agregarMateriaPrima = () => {
-            if (!nuevaMateriaPrima.value.Nombre || !nuevaMateriaPrima.value.Cantidad) {
+            if (!selectedMateriaPrima.value || !nuevaMateriaPrima.value.Cantidad) {
                 $q.notify({ type: 'warning', message: 'Completá los datos de materia prima' })
                 return
             }
-
-            materiasPrimas.value.push({ ...nuevaMateriaPrima.value })
-            nuevaMateriaPrima.value = { Nombre: '', Cantidad: null }
+            materiasPrimas.value.push({
+                id_MateriaPrima: selectedMateriaPrima.value.value,
+                Nombre: selectedMateriaPrima.value.label,
+                Cantidad: nuevaMateriaPrima.value.Cantidad,
+                PrecioUnitario: nuevaMateriaPrima.value.PrecioUnitario,
+            });
+            nuevaMateriaPrima.value.Cantidad = null;
+            nuevaMateriaPrima.value.PrecioUnitario = null;
+            selectedMateriaPrima.value = null;
         }
 
         const eliminarMateriaPrima = (index) => {
@@ -184,6 +211,7 @@ export default {
             nuevaMateriaPrima.value = {
                 Nombre: '',
                 Cantidad: null,
+                PrecioUnitario: null,
                 Fecha: ''
             }
             materiasPrimas.value = []
@@ -194,7 +222,9 @@ export default {
             nuevaMateriaPrima,
             materiasPrimas,
             selectedEstado,
+            selectedMateriaPrima,
             estadoOptions,
+            materiaPrimaOptions,
             agregarMateriaPrima,
             eliminarMateriaPrima,
             guardarCompra,
