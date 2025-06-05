@@ -236,7 +236,7 @@ export default {
         });
 
         const permitirFiltrar = computed(() => {
-            return (props.selectedTable === 'Clientes' || props.selectedTable === 'MateriaPrimaPorProducto' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores' || props.selectedTable === 'Gastos' || props.selectedTable === 'Usuarios' || props.selectedTable === 'MateriaPrima');
+            return (props.selectedTable === 'Clientes' || props.selectedTable === 'Productos'|| props.selectedTable === 'MateriaPrimaPorProducto' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores' || props.selectedTable === 'Gastos' || props.selectedTable === 'Usuarios' || props.selectedTable === 'MateriaPrima');
         });
 
         const verHistorial = computed(() => {
@@ -402,7 +402,8 @@ export default {
             if (filaSeleccionada.value !== null) {
                 const selectedRow = rows.value[filaSeleccionada.value];
                 const idIngreso = selectedRow.id_Ingreso;
-                const importe = selectedRow.Total;
+                let importe = selectedRow.Total.replace(/^\$\s?/, '');
+                importe = importe.replace(/\./g, '').replace(',', '.');
                 const estado = selectedRow.Estado;
                 try {
                     await editIngreso(idIngreso, {
@@ -426,7 +427,8 @@ export default {
             if (filaSeleccionada.value !== null) {
                 const selectedRow = rows.value[filaSeleccionada.value];
                 const idEgreso = selectedRow.Id_Egresos;
-                const importeTotal = selectedRow.ImporteTotal;
+                let importeTotal = selectedRow.ImporteTotal.replace(/^\$\s?/, '');
+                importeTotal = importeTotal.replace(/\./g, '').replace(',', '.');
                 try {
                     await editEgreso(idEgreso, { ImporteTotal: importeTotal });
                     $q.notify({
@@ -536,7 +538,8 @@ export default {
             if (filaSeleccionada.value !== null) {
                 const selectedRow = rows.value[filaSeleccionada.value];
                 const idGasto = selectedRow.Id_Gastos;
-                const importe = selectedRow.Importe;
+                let importe = selectedRow.Importe.replace(/^\$\s?/, '');
+                importe = importe.replace(/\./g, '').replace(',', '.');
                 try {
                     await editGastos(idGasto, { Importe: importe });
                     $q.notify({
@@ -578,14 +581,14 @@ export default {
                 const idProduccion = selectedRow.id_Produccion;
                 const cantidad = selectedRow.Cantidad;
                 try {
-                    await editProduccion(idProduccion, { nuevaCantidad: Number(cantidad) });
+                    await editProduccion(idProduccion, Number(cantidad)); 
                     $q.notify({
                         type: 'positive',
                         message: `Se modificó  correctamente`
                     });
                     obtenerDatosTablas();
                 } catch (error) {
-                    console.error('Error modificando devolucion:', error);
+                    console.error('Error modificando produccion:', error);
                 }
             } else {
                 console.error('No hay fila seleccionada.');

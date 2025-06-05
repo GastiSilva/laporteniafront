@@ -98,7 +98,7 @@ export default {
         vendedores.value = response || [];
         filteredVendedores.value = [...vendedores.value];
       } catch (error) {
-        console.error('Error al cargar clientes:', error)
+        console.error('Error al cargar vendedores:', error)
       }
     }
 

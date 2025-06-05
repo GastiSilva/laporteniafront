@@ -389,7 +389,7 @@ export const deleteUsuario = async (id) => {
 //METOODOS MODIFICAR
 export const editProduccion = async (id, cantidad) => {
     try {
-        const response = await api.delete(`/produccion/${id}/${cantidad}`);
+        const response = await api.put(`/produccion/${id}/${cantidad}`);
         return response;
     } catch (error) {
         console.error(`No se pudo borrar el producto con  ${id}:`, error);

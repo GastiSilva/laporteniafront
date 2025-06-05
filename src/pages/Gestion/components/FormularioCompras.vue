@@ -145,6 +145,7 @@ export default {
                 PrecioUnitario: nuevaMateriaPrima.value.PrecioUnitario,
             });
             nuevaMateriaPrima.value.Cantidad = null;
+            nuevaMateriaPrima.value.PrecioUnitario = null;
             selectedMateriaPrima.value = null;
         }
 

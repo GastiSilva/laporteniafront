@@ -6,30 +6,21 @@
         </q-card-section>
         <q-card-section>
             <q-form @submit.prevent="guardarMateriaPrimaPorProducto">
-                <!-- 🧾 Datos del Producto y Materia Prima -->
                 <div class="text-subtitle1 text-bold text-secondary q-mb-md">Datos del Producto y Materia Prima</div>
-
-                <div class="row q-mb-md">
-                    <!-- Selección del Producto -->
-                    <q-select v-model="selectedProduct" :options="filteredProductsOptions" use-input
-                        option-label="label" option-value="value" label="Productos" @filter="filterProducts"
-                        @update:model-value="onSelectUpdate" outlined dense clearable class="col-6 q-mr-lg"
-                        style="background-color: white;" />
-
-                    <!-- Selección de Materia Prima -->
-                    <q-select v-model="selectedMateriaPrima" :options="materiaPrimaOptions" label="Materia Prima"
-                        outlined clearable :error="!selectedMateriaPrima && errorIntento" class="col-5" dense />
-                </div>
-
-                <!-- Cantidad Necesaria -->
-                <q-input v-model.number="nuevaMateriaPrima.cantidadNecesaria" label="Cantidad Necesaria" type="number"
-                    outlined class="q-mb-md" dense />
-
-                <!-- Botones -->
-                <div class="row justify-center q-gutter-m q-mt-md">
-                    <q-btn label="Guardar" type="submit" color="primary" class="q-px-lg" />
-                    <q-btn label="Cancelar" flat color="negative" @click="limpiarFormulario" />
-                </div>
+                    <div class="row q-mb-md">
+                        <q-select v-model="selectedProduct" :options="filteredProductsOptions" use-input
+                            option-label="label" option-value="value" label="Productos" @filter="filterProducts"
+                            @update:model-value="onSelectUpdate" outlined dense clearable class="col-6 q-mr-lg"
+                            style="background-color: white;" />
+                        <q-select v-model="selectedMateriaPrima" :options="materiaPrimaOptions" label="Materia Prima"
+                            outlined clearable :error="!selectedMateriaPrima && errorIntento" class="col-5" dense />
+                    </div>
+                    <q-input v-model.number="nuevaMateriaPrima.cantidadNecesaria" label="Cantidad Necesaria" type="number"
+                        outlined class="q-mb-md" dense />
+                    <div class="row justify-center q-gutter-m q-mt-md">
+                        <q-btn label="Guardar" type="submit" color="primary" class="q-px-lg" />
+                        <q-btn label="Cancelar" flat color="negative" @click="limpiarFormulario" />
+                    </div>
             </q-form>
         </q-card-section>
     </q-card>

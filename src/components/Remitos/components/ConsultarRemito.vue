@@ -5,9 +5,11 @@
             <div justify-between class="row ">
                 <q-btn flat label="Volver" text-color="white" class="q-ma-md" @click="goBack" rounded
                     style="background-color:#0e1d75;" />
+                <q-btn flat label="Limpiar filtros" text-color="white" class="q-ma-md" @click="limpiarFiltros" rounded
+                    style="background-color:#0e1d75;" />
 
-                <q-input v-model="filter" label="Buscar" outlined dense 
-                    class="q-mt-md search-input q-mr-lg" style="background-color: white;" clearable>
+                <q-input v-model="filter" label="Buscar" outlined dense  clearable
+                    class="q-mt-md search-input q-mr-lg" style="background-color: white;" >
                     <template #append>
                         <q-icon name="search" />
                     </template>
@@ -117,6 +119,12 @@ export default {
             });
         };
 
+        const limpiarFiltros = () => {
+            filter.value = "";
+            fechaDesde.value = null;
+            fechaHasta.value = null;
+            obtenerRemitosData();
+        };
 
         const downloadRemito = async (id) => {
             try {
@@ -170,6 +178,7 @@ export default {
             obtenerRemitosData,
             fechaDesde,
             fechaHasta,
+            limpiarFiltros,
         };
     },
 };

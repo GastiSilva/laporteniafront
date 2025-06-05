@@ -207,8 +207,11 @@ export default {
         };
 
         watch(selectedProduct, (newValue) => {
-            if (newValue !== null) {
+            if (newValue !== null) {   
                 consularTabla();
+            }
+            else{
+                selectedProduct.value = "";
             }
         });
 
