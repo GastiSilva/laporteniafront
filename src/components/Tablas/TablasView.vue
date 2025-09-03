@@ -245,13 +245,23 @@ export default {
                     })
                 );
                 const response = await guardarEnVentas(productos);
-                $q.notify({
-                    type: "positive",
-                    message: "Datos cargados con éxito en Ventas",
-                    position: "top",
-                });
+                console.log("Respuesta de la API de ventas:", response);
+                if(response) {
+                    $q.notify({
+                        type: "positive",
+                        message: "Datos cargados con éxito en Ventas",
+                        position: "top",
+                    });
+                }
                 addedProducts.value = [];
             } catch (error) {
+                console.log("error fatal", error);
+                $q.notify({
+                    type: "warning",
+                    message: error,
+                    position: "top",
+                });
+                console
                 console.error("Error al enviar los datos:", error);
             }
         };
