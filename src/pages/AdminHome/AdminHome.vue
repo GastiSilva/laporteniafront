@@ -1,178 +1,236 @@
 <template>
-  <AdminLayout>
-    <div class="all-container">
-      <!-- Splitter para el layout principal -->
-      <q-splitter v-model="splitterModel" class="custom-splitter" style="height: 100vh; background-color: #ffffed;" :limits="[5, 30]">
+  <div class="admin-shell">
+    <aside class="sidebar" :class="{ 'sidebar--collapsed': menuCollapsed }">
+      <div class="sidebar__brand">
+        <img src="~assets/laportenialogo.png" alt="La Porteña" class="sidebar__logo" />
+        <q-btn
+          flat
+          round
+          dense
+          size="sm"
+          :icon="menuCollapsed ? 'chevron_right' : 'chevron_left'"
+          class="sidebar__toggle"
+          @click="toggleMenu"
+        >
+          <q-tooltip anchor="center right" self="center left">
+            {{ menuCollapsed ? 'Expandir menú' : 'Contraer menú' }}
+          </q-tooltip>
+        </q-btn>
+      </div>
 
-        <!-- Menú lateral con colores personalizados -->
-        <template v-slot:before>
-          <div :style="menuCollapsed ? 'width: 60%;' : 'width: 45%;'" class="menu-lateral q-pa-md">
-            <!-- Botón para colapsar/expandir el menú -->
-            <q-btn icon="menu" flat round dense @click="toggleMenu" class="q-mb-md text-white" />
-            <q-tabs v-model="tab" vertical class="tabs-lateral text-white"
-              :style="menuCollapsed ? 'width: 50px;' : 'width: 100%;'">
-              <!-- Tabs con íconos y etiquetas -->
-                <q-tab name="remitos" icon="fa-solid fa-file-invoice-dollar" :label="!menuCollapsed ? '' : ''"
-                class="tab-item">
-                <q-tooltip anchor="top middle" self="bottom middle">
-                  Remitos
-                </q-tooltip>
-                </q-tab>
-                <q-tab name="movimientos" icon="fa-solid fa-table-list" :label="!menuCollapsed ? '' : ''"
-                class="tab-item">
-                <q-tooltip anchor="top middle" self="bottom middle">
-                  Movimientos
-                </q-tooltip>
-                </q-tab>
-                <q-tab name="datos" icon="fa-solid fa-print" :label="!menuCollapsed ? '' : ''" class="tab-item">
-                <q-tooltip anchor="top middle" self="bottom middle">
-                  Exportar
-                </q-tooltip>
-                </q-tab>
-                <q-tab  name="gestion" icon="fa-solid fa-plus-minus" :label="!menuCollapsed ? '' : ''"
-                class="tab-item">
-                <q-tooltip anchor="top middle" self="bottom middle">
-                  Gestionar
-                </q-tooltip>
-                </q-tab>
-            </q-tabs>
-          </div>
-        </template>
+      <nav class="sidebar__nav">
+        <router-link
+          v-for="item in navItems"
+          :key="item.nombre"
+          :to="{ name: item.nombre }"
+          class="nav-item"
+          active-class="nav-item--active"
+        >
+          <q-icon :name="item.icono" size="20px" class="nav-item__icon" />
+          <span v-if="!menuCollapsed" class="nav-item__label">{{ item.label }}</span>
+          <q-tooltip v-if="menuCollapsed" anchor="center right" self="center left">
+            {{ item.label }}
+          </q-tooltip>
+        </router-link>
+      </nav>
 
-        <!-- Contenido dinámico -->
-        <template v-slot:after>
-          <q-tab-panels v-model="tab" animated swipeable vertical transition-prev="jump-up" transition-next="jump-up"
-  class="q-pa-md tab-content">
+      <div class="sidebar__footer">
+        <button class="nav-item nav-item--logout" type="button" @click="cerrarSesion">
+          <q-icon name="logout" size="20px" class="nav-item__icon" />
+          <span v-if="!menuCollapsed" class="nav-item__label">Cerrar sesión</span>
+          <q-tooltip v-if="menuCollapsed" anchor="center right" self="center left">
+            Cerrar sesión
+          </q-tooltip>
+        </button>
+      </div>
+    </aside>
 
-            <q-tab-panel name="remitos">
-                <RemitosView :menuCollapsed="menuCollapsed" @toggleMenu="toggleMenu" />
-            </q-tab-panel>
-
-            <q-tab-panel name="movimientos">
-                <TablasView />
-            </q-tab-panel>
-
-            <q-tab-panel name="datos">
-              <ExportarDatosView />
-            </q-tab-panel>
-
-            <q-tab-panel name="gestion">
-              <GestionView />
-            </q-tab-panel>
-          </q-tab-panels>
-        </template>
-      </q-splitter>
-    </div>
-  </AdminLayout>
+    <main class="admin-content">
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
+    </main>
+  </div>
 </template>
 
 <script>
-import { ref, watch } from 'vue';
-import RemitosView from '../../components/Remitos/RemitosVIew.vue';
-import TablasView from '../../components/Tablas/TablasView.vue';
-import ExportarDatosView from '../ExportarDatos/ExportarDatosView.vue';
-import GestionView from '../Gestion/GestionView.vue';
-
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useQuasar } from 'quasar';
+import { useAuthStore } from 'src/stores/auth';
 
 export default {
-  components: {
-    RemitosView,
-    TablasView,
-    ExportarDatosView,
-    GestionView,
-    
-  },
+  name: 'AdminHome',
   setup() {
-    const splitterModel = ref(20); // Ancho inicial del panel izquierdo
-    const tab = ref('remitos');    // Pestaña seleccionada por defecto
-    const menuCollapsed = ref(false); // Estado para determinar si el menú está colapsado o no
+    const router = useRouter();
+    const $q = useQuasar();
+    const auth = useAuthStore();
 
-    // Colapsar el menú cuando se selecciona una nueva pestaña
-    watch(tab, () => {
-      setTimeout(() => {
-        menuCollapsed.value = true;
-        splitterModel.value = 5; // Colapsar el menú al 5% de ancho
-      }, 300);
-    });
+    // Arranca contraido en pantallas chicas para no comerse el ancho util.
+    const menuCollapsed = ref($q.screen.lt.md);
 
-    // Función para alternar entre colapsar y expandir el menú
+    const navItems = [
+      { nombre: 'remitos', label: 'Remitos', icono: 'receipt_long' },
+      { nombre: 'movimientos', label: 'Movimientos', icono: 'inventory_2' },
+      { nombre: 'datos', label: 'Exportar', icono: 'file_download' },
+      { nombre: 'gestion', label: 'Gestionar', icono: 'tune' },
+    ];
+
     const toggleMenu = () => {
-      if (menuCollapsed.value) {
-        splitterModel.value = 20; // Restaurar el tamaño original del menú
-        menuCollapsed.value = false;
-      } else {
-        splitterModel.value = 5;  // Colapsar el menú
-        menuCollapsed.value = true;
-      }
+      menuCollapsed.value = !menuCollapsed.value;
     };
 
+    const cerrarSesion = () => {
+      $q.dialog({
+        title: 'Cerrar sesión',
+        message: '¿Querés salir del sistema?',
+        ok: { label: 'Salir', color: 'primary', unelevated: true, noCaps: true },
+        cancel: { label: 'Cancelar', color: 'grey-8', flat: true, noCaps: true },
+      }).onOk(() => {
+        auth.logout();
+        router.push({ name: 'login' });
+      });
+    };
 
     return {
-      splitterModel,
-      tab,
       menuCollapsed,
+      navItems,
       toggleMenu,
+      cerrarSesion,
     };
-  }
+  },
 };
 </script>
 
-
 <style scoped>
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-surface);
+}
 
-/* Estilos personalizados para el menú lateral */
-.menu-lateral {
-  background-color: #0e1d75;
-  /* Color de fondo */
-  color: white;
-  /* Color del texto en el menú lateral */
-  height: 100%;
-  /* Asegura que el fondo ocupe toda la altura del panel */
+/* --- Sidebar --- */
+.sidebar {
+  width: 232px;
+  flex-shrink: 0;
+  background: var(--color-brand-secondary);
+  color: #fff;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  transition: width 0.2s ease;
+}
+
+.sidebar--collapsed {
+  width: 68px;
+}
+
+.sidebar__brand {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 1rem 0.75rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.1);
+  min-height: 72px;
 }
 
-.tabs-lateral .q-tab__button {
-  color: black;
-
+.sidebar__logo {
+  max-height: 40px;
+  max-width: 120px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 8px;
+  padding: 4px 6px;
 }
 
-/* Estilo para la pestaña activa */
-.tab-item.q-tab--active .q-tab__button {
-  background-color: #1e88e5;
-  color: white;
+.sidebar--collapsed .sidebar__logo {
+  display: none;
 }
 
-/* Efecto hover en las tabs */
-.tabs-lateral .q-tab__button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.sidebar__toggle {
+  color: rgb(255 255 255 / 0.75);
+  margin-left: auto;
 }
 
-::v-deep .q-splitter__separator-area {
-  background-color: #3f51b5 !important;
-  
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.75rem 0.5rem;
+  flex: 1;
 }
 
-::v-deep .q-splitter__separator {
-  background-color: transparent !important;
-  border: none !important;
-  width: 0 !important;
-  display: none !important;
+.sidebar__footer {
+  padding: 0.75rem 0.5rem;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
 }
 
-.q-splitterpanel q-splitterbefore{
+/* --- Items de navegacion --- */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  color: rgb(255 255 255 / 0.72);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  /* reset para el <button> del logout */
   width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
 }
 
-.tab-content {
-  background-color: #ffffed;
-  min-height: 100vh;
+.nav-item:hover {
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
 }
 
-::v-deep .q-splitter__panel--after {
-  background-color: #ffffed;
+.nav-item--active {
+  background: rgb(255 255 255 / 0.14);
+  color: #fff;
 }
 
+.nav-item__icon {
+  flex-shrink: 0;
+}
+
+.nav-item__label {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.nav-item--logout:hover {
+  background: rgb(239 68 68 / 0.18);
+  color: #fecaca;
+}
+
+.sidebar--collapsed .nav-item {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+/* --- Contenido --- */
+.admin-content {
+  flex: 1;
+  min-width: 0; /* permite que las tablas anchas hagan scroll en vez de empujar el layout */
+  overflow-x: auto;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 </style>

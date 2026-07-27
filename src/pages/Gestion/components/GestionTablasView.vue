@@ -1,66 +1,112 @@
 <template>
-    <div v-if="currentView === 'gestionTablasView'">
-        <q-card-actions align="right">
-            <q-input v-if="selectedTable && !permitirFiltrar" v-model="fechaDesde" type="date" label="Fecha Desde"
-                outlined dense class="q-mr-lg" />
-            <q-input v-if="selectedTable && !permitirFiltrar" v-model="fechaHasta" type="date" label="Fecha Hasta"
-                outlined dense class="q-mr-lg" />
-            <q-btn v-if="selectedTable && !permitirAgregar" label="Agregar" color="primary" icon="add"
-                @click="consularTabla" />
-            <q-btn v-if="selectedTable && !permitirEliminar" label="Eliminar" color="primary" icon="remove"
-                @click="handleEliminar" />
-            <q-btn v-if="selectedTable && !permitirModificar" label="Modificar" color="primary" icon="edit"
-                @click="handleModificar" />
-            <q-btn v-if="selectedTable && !verHistorial" label="Ver historial" color="primary" icon="history" @click="abrirHistorial"/>
-        </q-card-actions>
-        <table>
-            <thead>
-                <tr>
-                    <th v-for="(column, index) in columns" :key="index"
-                        style="background-color: #0e1d75; color: white;">{{ column }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(row, rowIndex) in rows" :key="rowIndex" :class="{ 'selected-row': isSelected(rowIndex) }"
-                    @click="seleccionarFila(rowIndex)">
-                    <td v-for="(column, colIndex) in columns" :key="colIndex">
-                        <div v-if="esEditable(rowIndex, column)">
-                            <input v-model="editValue" @blur="guardarEdit(rowIndex, column)"
-                                @keyup.enter="guardarEdit(rowIndex, column)" />
+    <div>
+        <div v-if="currentView !== 'historialStock'" class="surface-card q-pa-md q-mb-md">
+            <div class="row q-col-gutter-md items-center justify-between">
+                <div v-if="selectedTable && !permitirFiltrar" class="col-12 col-md-6">
+                    <div class="row q-col-gutter-sm">
+                        <div class="col-6">
+                            <q-input v-model="fechaDesde" type="date" label="Fecha desde" outlined dense
+                                bg-color="white" hide-bottom-space />
                         </div>
-                        <div v-else @dblclick="permitirEditar(rowIndex, column)">
-                            {{ row[column] }}
+                        <div class="col-6">
+                            <q-input v-model="fechaHasta" type="date" label="Fecha hasta" outlined dense
+                                bg-color="white" hide-bottom-space />
                         </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-auto flex gap-2 justify-end">
+                    <q-btn v-if="selectedTable && !permitirAgregar" label="Agregar" color="primary" icon="add"
+                        unelevated no-caps @click="mostrarFormularioAlta = true" />
+                    <q-btn v-if="selectedTable && !permitirModificar" label="Modificar" color="primary" icon="edit"
+                        outline no-caps :disable="filaSeleccionada === null" @click="abrirModalModificar" />
+                    <q-btn v-if="selectedTable && !permitirEliminar" label="Eliminar" color="negative"
+                        icon="delete_outline" outline no-caps :disable="filaSeleccionada === null"
+                        @click="handleEliminar" />
+                    <q-btn v-if="selectedTable && !verHistorial" label="Ver historial" color="grey-8" icon="history"
+                        flat no-caps @click="abrirHistorial" />
+                </div>
+            </div>
+
+            <div class="text-caption text-grey-6 q-mt-sm">
+                Hacé clic en una fila para seleccionarla y usar las acciones de arriba.
+            </div>
+        </div>
+
+        <HistorialStock v-if="currentView === 'historialStock'" :selectedTable="selectedTable"
+            @volver="volverAGestion" />
+
+        <div v-else class="data-table tabla-scroll">
+            <table class="tabla-gestion">
+                <thead>
+                    <tr>
+                        <th v-for="(column, index) in displayColumns" :key="index">{{ column }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(row, rowIndex) in rows" :key="rowIndex"
+                        :class="{ 'selected-row': isSelected(rowIndex) }" @click="seleccionarFila(rowIndex)">
+                        <td v-for="(column, colIndex) in displayColumns" :key="colIndex">{{ row[column] }}</td>
+                    </tr>
+                    <tr v-if="rows.length === 0">
+                        <td :colspan="displayColumns.length || 1" class="celda-vacia">
+                            No hay registros para mostrar.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Popup de alta: un solo dialog, el formulario que muestra depende de la tabla elegida. -->
+        <q-dialog v-model="mostrarFormularioAlta" @hide="obtenerDatosTablas">
+            <q-card class="dialog-formulario">
+                <component :is="componenteFormularioActivo" :selected-table="selectedTable"
+                    @agregar-completado="mostrarFormularioAlta = false" @volver="mostrarFormularioAlta = false" />
+            </q-card>
+        </q-dialog>
+
+        <!-- Popup de modificar: los campos dependen de la tabla seleccionada (ver CAMPOS_MODIFICAR). -->
+        <q-dialog v-model="mostrarModalModificar">
+            <q-card class="dialog-formulario">
+                <q-card-section class="row items-center justify-between">
+                    <div>
+                        <div class="text-subtitle1 text-weight-semibold">Modificar registro</div>
+                        <div class="text-caption text-grey-6">{{ selectedTable }}</div>
+                    </div>
+                    <q-btn icon="close" flat round dense v-close-popup />
+                </q-card-section>
+
+                <q-card-section class="q-pt-none">
+                    <div class="row q-col-gutter-md">
+                        <div v-for="campo in camposModificar" :key="campo.key" class="col-12 col-sm-6">
+                            <q-select v-if="campo.tipo === 'estado'" v-model="modeloModificar[campo.key]"
+                                :options="estadoOptions" option-label="label" :label="campo.label" outlined dense
+                                bg-color="white" hide-bottom-space />
+                            <q-input v-else v-model.number="modeloModificar[campo.key]"
+                                :type="campo.tipo === 'texto' ? 'text' : 'number'"
+                                :prefix="campo.tipo === 'moneda' ? '$' : undefined" :label="campo.label" outlined
+                                dense bg-color="white" hide-bottom-space />
+                        </div>
+                    </div>
+                </q-card-section>
+
+                <q-card-actions align="right">
+                    <q-btn flat no-caps label="Cancelar" v-close-popup />
+                    <q-btn unelevated no-caps color="primary" label="Guardar" :loading="guardandoModificar"
+                        @click="guardarModificar" />
+                </q-card-actions>
+            </q-card>
+        </q-dialog>
     </div>
-    <FormularioAgregar v-if="currentView === 'formularioAgregar'" :selectedTable="selectedTable" :columns="columns"
-        @submit="handleSubmit" @agregar-completado="volverAGestion" @volver="volverAGestion" />
-    <FormularioCompras v-if="currentView === 'formularioCompras'" :selectedTable="selectedTable" :columns="columns"
-        @submit="handleSubmit" @volver="volverAGestion" />
-    <FormularioIvaVentas v-if="currentView === 'formularioIvaVentas'" :selectedTable="selectedTable" :columns="columns"
-        @volver="volverAGestion" @submit="handleSubmit" />
-    <FormularioIvaCompras v-if="currentView === 'formularioIvaCompras'" :selectedTable="selectedTable"
-        :columns="columns" @volver="volverAGestion" />
-    <FormularioEgresos v-if="currentView === 'formularioEgresos'" :selectedTable="selectedTable" :columns="columns"
-        @volver="volverAGestion" />
-    <FormularioGastos v-if="currentView === 'formularioGastos'" :selectedTable="selectedTable" :columns="columns"
-        @volver="volverAGestion" />
-    <FormularioMateriaPrimaPorProducto v-if="currentView === 'formularioMateriaPrimaPorProducto'"
-        :selectedTable="selectedTable" :columns="columns" @volver="volverAGestion" />
-    <FormularioIngresos v-if="currentView === 'formularioIngresos'" :selectedTable="selectedTable" :columns="columns"
-        @volver="volverAGestion" />
-    <HistorialStock v-if="currentView === 'historialStock'" :selectedTable="selectedTable"  @volver="volverAGestion"/>
 </template>
 
 <script>
 import { ref, onMounted, watch, computed } from 'vue';
 import {
-    getTableData, getCompraFormData, getStock, deleteCliente, deleteProveedor, deleteVendedor, deleteUsuario,
+    getTableData, getStock, deleteCliente, deleteProveedor, deleteVendedor, deleteUsuario,
     editIngreso, editEgreso, editIvaVentas, editventasMercaderia, editGastos, editIvaCompras, editDevolucion, editProduccion, editCompras
 } from '../service/GestionService';
+import { obtenerEstados } from 'src/pages/Remitos/service/RemitosService';
 import FormularioAgregar from './FormularioAgregar.vue';
 import FormularioCompras from './FormularioCompras.vue';
 import FormularioIvaVentas from './FormularioIvaVentas.vue';
@@ -71,6 +117,200 @@ import FormularioMateriaPrimaPorProducto from './FormularioMPxP.vue';
 import FormularioIngresos from './FormularioIngresos.vue';
 import HistorialStock from './HistorialStock.vue';
 import { useQuasar } from 'quasar';
+
+// Que formulario de alta corresponde a cada tabla. Las tablas que no aparecen
+// aca (Clientes, Proveedor, Vendedores, Usuarios, Productos, MateriaPrima) usan
+// el formulario generico FormularioAgregar.
+const FORMULARIOS_ALTA = {
+    Compras: FormularioCompras,
+    IVAVentas: FormularioIvaVentas,
+    Egresos: FormularioEgresos,
+    Gastos: FormularioGastos,
+    IVACompras: FormularioIvaCompras,
+    MateriaPrimaPorProducto: FormularioMateriaPrimaPorProducto,
+    Ingresos: FormularioIngresos,
+};
+
+// Que campos se editan en el popup de "Modificar" para cada tabla, y como se
+// arma el payload hacia el backend. Reemplaza las 9 funciones actualizar* que
+// antes leian los valores de la celda editada a mano dentro de la fila.
+// `idField` es la columna que identifica al registro (viene oculta, ver
+// displayColumns). Los campos tipo 'estado' guardan la opcion completa
+// {label, value} elegida en el select, igual que en FormularioCompras.vue.
+function crearConfigModificar({ $q }) {
+    const notificarExito = () => $q.notify({ type: 'positive', message: 'Se modificó correctamente.' });
+
+    return {
+        Ingresos: {
+            idField: 'id_Ingreso',
+            campos: [
+                { key: 'Total', label: 'Total', tipo: 'moneda' },
+                { key: 'Estado', label: 'Estado', tipo: 'estado' },
+            ],
+            valorInicial: (row, estadoOptions) => ({
+                Total: parsearMoneda(row.Total),
+                // El backend de Ingresos guarda el Estado como texto (no como id),
+                // asi que acá se busca la opción cuyo label coincide con lo mostrado.
+                Estado: estadoOptions.find(o => o.label === row.Estado) || null,
+            }),
+            guardar: async (id, modelo) => {
+                await editIngreso(id, { Total: modelo.Total, Estado: modelo.Estado?.label });
+                notificarExito();
+            },
+        },
+        Egresos: {
+            idField: 'Id_Egresos',
+            campos: [{ key: 'ImporteTotal', label: 'Importe Total', tipo: 'moneda' }],
+            valorInicial: (row) => ({ ImporteTotal: parsearMoneda(row.ImporteTotal) }),
+            guardar: async (id, modelo) => {
+                await editEgreso(id, { ImporteTotal: modelo.ImporteTotal });
+                notificarExito();
+            },
+        },
+        IVAVentas: {
+            idField: 'Id_IvaVentas',
+            campos: [
+                { key: 'Factura', label: 'Factura', tipo: 'texto' },
+                { key: 'Factura_N', label: 'Factura N°', tipo: 'texto' },
+                { key: 'Neto', label: 'Neto', tipo: 'moneda' },
+                { key: 'IVA21', label: 'IVA 21%', tipo: 'moneda' },
+                { key: 'IVA10_5', label: 'IVA 10,5%', tipo: 'moneda' },
+                { key: 'Retenciones', label: 'Retenciones', tipo: 'moneda' },
+                { key: 'ImporteTotal', label: 'Importe Total', tipo: 'moneda' },
+            ],
+            valorInicial: (row) => ({
+                Factura: row.Factura,
+                Factura_N: row.Factura_N,
+                Neto: parsearMoneda(row.Neto),
+                IVA21: parsearMoneda(row.IVA21),
+                IVA10_5: parsearMoneda(row.IVA10_5),
+                Retenciones: parsearMoneda(row.Retenciones),
+                ImporteTotal: parsearMoneda(row.ImporteTotal),
+            }),
+            guardar: async (id, modelo) => {
+                await editIvaVentas(id, modelo);
+                notificarExito();
+            },
+        },
+        IVACompras: {
+            idField: 'Id_IvaCompras',
+            campos: [
+                { key: 'Factura', label: 'Factura', tipo: 'texto' },
+                { key: 'Factura_N', label: 'Factura N°', tipo: 'texto' },
+                { key: 'Neto', label: 'Neto', tipo: 'moneda' },
+                { key: 'IVA21', label: 'IVA 21%', tipo: 'moneda' },
+                { key: 'IVA10_5', label: 'IVA 10,5%', tipo: 'moneda' },
+                { key: 'PercIVA', label: 'Percepción IVA', tipo: 'moneda' },
+                { key: 'IngrBrutosRetEfect', label: 'Ingresos Brutos Ret.', tipo: 'moneda' },
+                { key: 'ConceptosNoAgravados', label: 'Conceptos no Gravados', tipo: 'moneda' },
+                { key: 'Flete10_5', label: 'Flete 10,5%', tipo: 'moneda' },
+                { key: 'PercepcionesCba', label: 'Percepciones Córdoba', tipo: 'moneda' },
+                { key: 'PercepcionesIIBB', label: 'Percepciones IIBB', tipo: 'moneda' },
+                { key: 'ImporteTotal', label: 'Importe Total', tipo: 'moneda' },
+            ],
+            valorInicial: (row) => ({
+                Factura: row.Factura,
+                Factura_N: row.Factura_N,
+                Neto: parsearMoneda(row.Neto),
+                IVA21: parsearMoneda(row.IVA21),
+                IVA10_5: parsearMoneda(row.IVA10_5),
+                PercIVA: parsearMoneda(row.PercIVA),
+                IngrBrutosRetEfect: parsearMoneda(row.IngrBrutosRetEfect),
+                ConceptosNoAgravados: parsearMoneda(row.ConceptosNoAgravados),
+                Flete10_5: parsearMoneda(row.Flete10_5),
+                PercepcionesCba: parsearMoneda(row.PercepcionesCba),
+                PercepcionesIIBB: parsearMoneda(row.PercepcionesIIBB),
+                ImporteTotal: parsearMoneda(row.ImporteTotal),
+            }),
+            guardar: async (id, modelo) => {
+                await editIvaCompras(id, modelo);
+                notificarExito();
+            },
+        },
+        VentasMercaderia: {
+            idField: 'Id_VentaMercaderia',
+            campos: [{ key: 'Cantidad', label: 'Cantidad', tipo: 'numero' }],
+            valorInicial: (row) => ({ Cantidad: Number(row.Cantidad) }),
+            guardar: async (id, modelo) => {
+                await editventasMercaderia(id, { nuevaCantidad: Number(modelo.Cantidad) });
+                notificarExito();
+            },
+        },
+        Gastos: {
+            idField: 'Id_Gastos',
+            campos: [{ key: 'Importe', label: 'Importe', tipo: 'moneda' }],
+            valorInicial: (row) => ({ Importe: parsearMoneda(row.Importe) }),
+            guardar: async (id, modelo) => {
+                await editGastos(id, { Importe: modelo.Importe });
+                notificarExito();
+            },
+        },
+        Devolucion: {
+            idField: 'id_Devolucion',
+            campos: [{ key: 'Cantidad', label: 'Cantidad', tipo: 'numero' }],
+            valorInicial: (row) => ({ Cantidad: Number(row.Cantidad) }),
+            guardar: async (id, modelo) => {
+                await editDevolucion(id, { nuevaCantidad: Number(modelo.Cantidad) });
+                notificarExito();
+            },
+        },
+        Produccion: {
+            idField: 'id_Produccion',
+            campos: [{ key: 'Cantidad', label: 'Cantidad', tipo: 'numero' }],
+            valorInicial: (row) => ({ Cantidad: Number(row.Cantidad) }),
+            guardar: async (id, modelo) => {
+                await editProduccion(id, Number(modelo.Cantidad));
+                notificarExito();
+            },
+        },
+        Compras: {
+            idField: 'Id_Compras',
+            campos: [
+                { key: 'Estado', label: 'Estado', tipo: 'estado' },
+                { key: 'Importe', label: 'Importe', tipo: 'moneda' },
+                { key: 'IVA21', label: 'IVA 21%', tipo: 'moneda' },
+                { key: 'IVA10_5', label: 'IVA 10,5%', tipo: 'moneda' },
+                { key: 'PercepcionIVA', label: 'Percepción IVA', tipo: 'moneda' },
+                { key: 'Flete', label: 'Flete', tipo: 'moneda' },
+                { key: 'PercepcionesMuniCba', label: 'Percepciones Municipales', tipo: 'moneda' },
+            ],
+            valorInicial: (row, estadoOptions) => ({
+                // El registro original guarda estadoId como el LABEL del estado (bug:
+                // editCompras espera un id). Con el select ahora se manda el id real.
+                Estado: estadoOptions.find(o => o.label === row.Estado) || null,
+                Importe: parsearMoneda(row.Importe),
+                IVA21: parsearMoneda(row.IVA21),
+                IVA10_5: parsearMoneda(row.IVA10_5),
+                PercepcionIVA: parsearMoneda(row.PercepcionIVA),
+                Flete: parsearMoneda(row.Flete),
+                PercepcionesMuniCba: parsearMoneda(row.PercepcionesMuniCba),
+            }),
+            guardar: async (id, modelo) => {
+                await editCompras({
+                    idCompra: id,
+                    compra: {
+                        Importe: modelo.Importe,
+                        IVA21: modelo.IVA21,
+                        IVA10_5: modelo.IVA10_5,
+                        PercepcionIVA: modelo.PercepcionIVA,
+                        PercepcionesMuniCba: modelo.PercepcionesMuniCba,
+                        Flete: modelo.Flete,
+                    },
+                    estadoId: modelo.Estado?.value,
+                });
+                notificarExito();
+            },
+        },
+    };
+}
+
+// "$ 1.234,56" (formato es-AR) -> 1234.56. Los valores ya vienen formateados en
+// `rows` porque `obtenerDatosTablas` los formatea para mostrarlos en la tabla.
+function parsearMoneda(valor) {
+    if (typeof valor === 'number') return valor;
+    if (!valor) return 0;
+    return Number(String(valor).replace(/^\$\s?/, '').replace(/\./g, '').replace(',', '.')) || 0;
+}
 
 export default {
     name: 'GestionTablasView',
@@ -94,23 +334,38 @@ export default {
     setup(props) {
         const $q = useQuasar();
         const currentView = ref('gestionTablasView');
-        const columns = ref([]);
+        const allColumns = ref([]);
         const rows = ref([]);
-        const filaEditada = ref(null);
-        const columnaEditada = ref(null);
-        const editValue = ref('');
         const filaSeleccionada = ref(null);
-        const mostrarFormulario = ref(false);
         const fechaDesde = ref(null);
         const fechaHasta = ref(null);
-        const rowDatas = ref([]);
+
+        const mostrarFormularioAlta = ref(false);
+        const mostrarModalModificar = ref(false);
+        const modeloModificar = ref({});
+        const guardandoModificar = ref(false);
+        const estadoOptions = ref([]);
+
+        // Columnas que se muestran en la tabla: sin ids ni campos sensibles/ruidosos.
+        // `allColumns` sigue teniendo el id de cada fila (siempre viene primero en
+        // los datos), asi que las acciones (editar/eliminar) que leen
+        // `selectedRow.id_Cliente`, `selectedRow.Id_Compras`, etc. siguen funcionando
+        // aunque esa columna ya no se pinte.
+        const displayColumns = computed(() => allColumns.value.filter(column => {
+            const nombre = column.toLowerCase();
+            if (props.selectedTable === 'Ingresos' && nombre === 'cuit') return false;
+            if (nombre === 'contrasenia') return false;
+            return !nombre.startsWith('id_');
+        }));
+
+        const configModificar = crearConfigModificar({ $q });
+        const camposModificar = computed(() => configModificar[props.selectedTable]?.campos || []);
 
         const obtenerDatosTablas = async () => {
             try {
                 const response = await getTableData(props.selectedTable, fechaDesde.value, fechaHasta.value);
                 let data = response.data;
-                rowDatas.value = data;
-                console.log('Response:', response.data);
+
                 if (['Produccion', 'Devolucion', 'VentasMercaderia'].includes(props.selectedTable)) {
                     const agrupado = {};
 
@@ -120,7 +375,6 @@ export default {
                             agrupado[key] = { ...item };
                         } else {
                             agrupado[key].Cantidad += item.Cantidad;
-
 
                             const fechaActual = new Date(agrupado[key].Fecha);
                             const fechaNueva = new Date(item.Fecha);
@@ -133,12 +387,7 @@ export default {
                 }
 
                 if (data.length > 0) {
-                    columns.value = Object.keys(data[0]).filter((column, index) => {
-                        if (index === 0) return true;
-                        if (props.selectedTable === 'Ingresos' && column.toLowerCase() === 'cuit') return false;
-                        if (column.toLowerCase() === 'contrasenia') return false;
-                        return !column.toLowerCase().startsWith('id_');
-                    });
+                    allColumns.value = Object.keys(data[0]);
 
                     const columnasAFormatear = [
                         'Importe', 'ImporteTotal', 'Total', 'Neto', 'IVA21', 'IVA10_5',
@@ -149,7 +398,7 @@ export default {
 
                     rows.value = data.map(row => {
                         const filasFiltradas = {};
-                        columns.value.forEach(column => {
+                        allColumns.value.forEach(column => {
                             const valor = row[column];
 
                             if (typeof valor === 'boolean') {
@@ -168,7 +417,7 @@ export default {
                     });
 
                     if (props.selectedTable === 'MateriaPrima') {
-                        columns.value.push('Stock');
+                        allColumns.value = [...allColumns.value, 'Stock'];
                         const stockData = await getStock();
                         rows.value.forEach(row => {
                             const stockItem = stockData.data.find(stock => stock.id_MateriaPrima === row.id_MateriaPrima);
@@ -177,38 +426,14 @@ export default {
                     }
 
                 } else {
-                    columns.value = data.columns.filter((column, index) => {
-                        if (index === 0) return true;
-                        if (props.selectedTable === 'Ingresos' && column.toLowerCase() === 'cuit') return false;
-                        if (column.toLowerCase() === 'contrasenia') return false;
-                        return !column.toLowerCase().startsWith('id_');
-                    });
+                    allColumns.value = data.columns || [];
                     rows.value = [];
                 }
 
+                filaSeleccionada.value = null;
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
-        };
-
-
-        const esEditable = (rowIndex, column) => {
-            return filaEditada.value === rowIndex && columnaEditada.value === column;
-        };
-
-        const permitirEditar = (rowIndex, column) => {
-            if (column.toLowerCase().startsWith('id')) {
-                return;
-            }
-            filaEditada.value = rowIndex;
-            columnaEditada.value = column;
-            editValue.value = rows.value[rowIndex][column];
-        };
-
-        const guardarEdit = (rowIndex, column) => {
-            rows.value[rowIndex][column] = editValue.value;
-            filaEditada.value = null;
-            columnaEditada.value = null;
         };
 
         const seleccionarFila = (rowIndex) => {
@@ -229,11 +454,11 @@ export default {
                 props.selectedTable === 'IVACompras' || props.selectedTable === 'Gastos' || props.selectedTable === 'Devolucion' || props.selectedTable === 'MateriaPrimaPorProducto');
         });
 
-        const permitirModificar = computed(() => {
-            return (props.selectedTable === 'MateriaPrima' || props.selectedTable === 'MateriaPrimaPorProducto'|| 
-            props.selectedTable === 'Clientes' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores' || props.selectedTable === 'Productos' || props.selectedTable === 'Usuarios' 
-            );
-        });
+        // Solo las tablas con una entrada en configModificar tienen edicion real
+        // implementada en el backend; el resto (Clientes, Proveedor, Vendedores,
+        // Productos, Usuarios, MateriaPrima, MateriaPrimaPorProducto) no la tiene,
+        // asi que el boton de Modificar se mantiene oculto para esas.
+        const permitirModificar = computed(() => !configModificar[props.selectedTable]);
 
         const permitirFiltrar = computed(() => {
             return (props.selectedTable === 'Clientes' || props.selectedTable === 'Productos'|| props.selectedTable === 'MateriaPrimaPorProducto' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Vendedores' || props.selectedTable === 'Gastos' || props.selectedTable === 'Usuarios' || props.selectedTable === 'MateriaPrima');
@@ -241,47 +466,24 @@ export default {
 
         const verHistorial = computed(() => {
             return (props.selectedTable === 'Productos' || props.selectedTable === 'Clientes' || props.selectedTable === 'MateriaPrimaPorProducto' || props.selectedTable === 'Proveedor' || props.selectedTable === 'Ingresos' ||
-             props.selectedTable === 'Vendedores' || props.selectedTable === 'Gastos' || props.selectedTable === 'Usuarios' || props.selectedTable === 'MateriaPrima' 
-             || props.selectedTable === 'Compras' || props.selectedTable === 'Egresos' || props.selectedTable === 'IVAVentas' || props.selectedTable === 'IVACompras' 
+             props.selectedTable === 'Vendedores' || props.selectedTable === 'Gastos' || props.selectedTable === 'Usuarios' || props.selectedTable === 'MateriaPrima'
+             || props.selectedTable === 'Compras' || props.selectedTable === 'Egresos' || props.selectedTable === 'IVAVentas' || props.selectedTable === 'IVACompras'
             );
         });
 
         const abrirHistorial = () => {
             if(props.selectedTable === 'Produccion' || props.selectedTable === 'Devolucion' || props.selectedTable === 'VentasMercaderia') {
                 currentView.value = 'historialStock';
-            } 
+            }
         }
 
-        const consularTabla = () => {
-            if (props.selectedTable === 'Compras') {
-                currentView.value = 'formularioCompras';
-            } else if (props.selectedTable === 'IVAVentas') {
-                currentView.value = 'formularioIvaVentas';
-            } else if (props.selectedTable === 'Egresos') {
-                currentView.value = 'formularioEgresos';
-            } else if (props.selectedTable === 'Gastos') {
-                currentView.value = 'formularioGastos';
-            } else if (props.selectedTable === 'IVACompras') {
-                currentView.value = 'formularioIvaCompras';
-            } else if (props.selectedTable === 'IVAVentas') {
-                currentView.value = 'formularioIvaVentas';
-            } else if (props.selectedTable === 'MateriaPrimaPorProducto') {
-                currentView.value = 'formularioMateriaPrimaPorProducto';
-            } else if (props.selectedTable === 'Ingresos') {
-                currentView.value = 'formularioIngresos';
-            } else if(props.selectedTable === 'Produccion' || props.selectedTable === 'Devolucion' || props.selectedTable === 'VentasMercaderia') {
-                currentView.value = 'historialStock';
-            } 
-            else {
-                currentView.value = 'formularioAgregar';
-            }
-        };
+        const componenteFormularioActivo = computed(() => FORMULARIOS_ALTA[props.selectedTable] || FormularioAgregar);
 
         watch(() => props.selectedTable, () => {
             fechaDesde.value = null;
             fechaHasta.value = null;
-            obtenerDatosTablas();
             currentView.value = 'gestionTablasView';
+            obtenerDatosTablas();
         });
 
         const volverAGestion = () => {
@@ -289,414 +491,183 @@ export default {
             obtenerDatosTablas();
         };
 
-        const logInitialData = async () => {
-            try {
-                const response = await getCompraFormData();
-            } catch (error) {
-                console.error('Error fetching initial data:', error);
-            }
-        };
-
         const handleEliminar = () => {
-            if (props.selectedTable === 'Clientes') {
-                eliminarCliente();
-            } else if (props.selectedTable === 'Proveedor') {
-                eliminarProveedor();
-            } else if (props.selectedTable === 'Vendedores') {
-                eliminarVendedor();
-            } else if (props.selectedTable === 'Usuarios') {
-                eliminarUsuario();
-            }
-            else {
+            if (filaSeleccionada.value === null) return;
+
+            const eliminarPorTabla = {
+                Clientes: () => deleteCliente(rows.value[filaSeleccionada.value].id_Cliente),
+                Proveedor: () => deleteProveedor(rows.value[filaSeleccionada.value].id_Proveedor),
+                Vendedores: () => deleteVendedor(rows.value[filaSeleccionada.value].Id_Vendedor),
+                Usuarios: () => deleteUsuario(rows.value[filaSeleccionada.value].id_Usuario),
+            };
+
+            const eliminar = eliminarPorTabla[props.selectedTable];
+            if (!eliminar) {
                 console.error('No se puede eliminar de esta tabla.');
+                return;
             }
-        };
 
-        const handleModificar = () => {
-            if (props.selectedTable === 'Ingresos') {
-                actualizarIngreso();
-            } else if (props.selectedTable === 'Egresos') {
-                actualizarEgresos();
-            } else if (props.selectedTable === 'IVAVentas') {
-                actualizarIVAVentas();
-            } else if (props.selectedTable === 'VentasMercaderia') {
-                actualizarVentasMercaderia();
-            } else if (props.selectedTable === 'Gastos') {
-                actualizarGastos();
-            } else if (props.selectedTable === 'IVACompras') {
-                actualizarIVACompras();
-            } else if (props.selectedTable === 'Devolucion') {
-                actualizarDevolucion();
-            } else if (props.selectedTable === 'Produccion') {
-                actualizarProduccion();
-            } else if (props.selectedTable === 'Compras') {
-                actualizarCompras();
-            }
-            else {
-                console.error('No se puede modificar esta tabla.');
-            }
-        };
-
-        //METODOS ABM
-        const eliminarVendedor = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idvendedor = selectedRow.Id_Vendedor;
+            $q.dialog({
+                title: '¿Eliminar este registro?',
+                message: 'Esta acción no se puede deshacer.',
+                ok: { label: 'Sí, eliminar', color: 'negative', unelevated: true, noCaps: true },
+                cancel: { label: 'Cancelar', color: 'grey-8', flat: true, noCaps: true },
+                persistent: true,
+            }).onOk(async () => {
                 try {
-                    await deleteVendedor(idvendedor);
+                    await eliminar();
+                    $q.notify({ type: 'positive', message: 'Registro eliminado.' });
                     obtenerDatosTablas();
                 } catch (error) {
-                    console.error('Error eliminando proveedor:', error);
+                    console.error('Error eliminando:', error);
+                    $q.notify({ type: 'negative', message: 'No se pudo eliminar el registro.' });
                 }
-            } else {
-                console.error('No hay fila seleccionada.');
+            });
+        };
+
+        const abrirModalModificar = async () => {
+            if (filaSeleccionada.value === null) return;
+
+            const config = configModificar[props.selectedTable];
+            if (!config) return;
+
+            if (config.campos.some(c => c.tipo === 'estado') && estadoOptions.value.length === 0) {
+                try {
+                    const estados = await obtenerEstados();
+                    estadoOptions.value = estados.map(estado => ({
+                        label: estado.Estado,
+                        value: estado.Id_Estado,
+                    }));
+                } catch (error) {
+                    console.error('Error al cargar los estados:', error);
+                }
+            }
+
+            const row = rows.value[filaSeleccionada.value];
+            modeloModificar.value = config.valorInicial(row, estadoOptions.value);
+            mostrarModalModificar.value = true;
+        };
+
+        const guardarModificar = async () => {
+            const config = configModificar[props.selectedTable];
+            if (!config || filaSeleccionada.value === null) return;
+
+            const row = rows.value[filaSeleccionada.value];
+            const id = row[config.idField];
+
+            guardandoModificar.value = true;
+            try {
+                await config.guardar(id, modeloModificar.value);
+                mostrarModalModificar.value = false;
+                obtenerDatosTablas();
+            } catch (error) {
+                console.error('Error modificando el registro:', error);
+                $q.notify({ type: 'negative', message: 'No se pudo modificar el registro.' });
+            } finally {
+                guardandoModificar.value = false;
             }
         };
 
-        const eliminarProveedor = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idproveedor = selectedRow.id_Proveedor;
-                try {
-                    await deleteProveedor(idproveedor);
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error eliminando proveedor:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        const eliminarCliente = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idcliente = selectedRow.id_Cliente;
-                try {
-                    await deleteCliente(idcliente);
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error eliminando clientes:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        const eliminarUsuario = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idusuario = selectedRow.id_Usuario;
-                try {
-                    await deleteUsuario(idusuario);
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error eliminando usuarios:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        const actualizarIngreso = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idIngreso = selectedRow.id_Ingreso;
-                let importe = selectedRow.Total.replace(/^\$\s?/, '');
-                importe = importe.replace(/\./g, '').replace(',', '.');
-                const estado = selectedRow.Estado;
-                try {
-                    await editIngreso(idIngreso, {
-                        Total: importe,
-                        Estado: estado
-                    });
-                    $q.notify({
-                        type: 'positive',
-                        message: `Se modificó  correctamente`
-                    });
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error modificando ingreso:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        const actualizarEgresos = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idEgreso = selectedRow.Id_Egresos;
-                let importeTotal = selectedRow.ImporteTotal.replace(/^\$\s?/, '');
-                importeTotal = importeTotal.replace(/\./g, '').replace(',', '.');
-                try {
-                    await editEgreso(idEgreso, { ImporteTotal: importeTotal });
-                    $q.notify({
-                        type: 'positive',
-                        message: `Se modificó  correctamente`
-                    });
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error modificando ingreso:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        const actualizarIVAVentas = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idIvaventas = selectedRow.Id_IvaVentas;
-                const factura = selectedRow.Factura;
-                const facturaN = selectedRow.Factura_N;
-                const neto = selectedRow.Neto;
-                const iva21 = selectedRow.IVA21;
-                const iva10_5 = selectedRow.IVA10_5;
-                const retenciones = selectedRow.Retenciones;
-                const importetotal = selectedRow.ImporteTotal;
-                try {
-                    await editIvaVentas(idIvaventas, {
-                        Factura: factura,
-                        Factura_N: facturaN,
-                        Neto: neto,
-                        IVA21: iva21,
-                        IVA10_5: iva10_5,
-                        Retenciones: retenciones,
-                        ImporteTotal: importetotal
-                    });
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error modificando ingreso:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        const actualizarIVACompras = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idIvaCompras = selectedRow.Id_IvaCompras;
-                const factura = selectedRow.Factura;
-                const facturaN = selectedRow.Factura_N;
-                const neto = selectedRow.Neto;
-                const iva21 = selectedRow.IVA21;
-                const iva10_5 = selectedRow.IVA10_5;
-                const percIva = selectedRow.PercIVA;
-                const ingrBrutosRetEfect = selectedRow.IngrBrutosRetEfect;
-                const conceptosNoAgravados = selectedRow.ConceptosNoAgravados;
-                const flete10_5 = selectedRow.Flete10_5;
-                const percepcionesCba = selectedRow.PercepcionesCba;
-                const percepcionesIIBB = selectedRow.PercepcionesIIBB;
-                const importetotal = selectedRow.ImporteTotal;
-                try {
-                    await editIvaCompras(idIvaCompras, {
-                        Factura: factura,
-                        Factura_N: facturaN,
-                        Neto: neto,
-                        IVA21: iva21,
-                        IVA10_5: iva10_5,
-                        PercIVA: percIva,
-                        IngrBrutosRetEfect: ingrBrutosRetEfect,
-                        ConceptosNoAgravados: conceptosNoAgravados,
-                        Flete10_5: flete10_5,
-                        PercepcionesCba: percepcionesCba,
-                        PercepcionesIIBB: percepcionesIIBB,
-                        ImporteTotal: importetotal
-                    });
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error modificando ingreso:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        const actualizarVentasMercaderia = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idVentasMercaderia = selectedRow.Id_VentaMercaderia;
-                const cantidad = selectedRow.Cantidad;
-                try {
-                    await editventasMercaderia(idVentasMercaderia, { nuevaCantidad: Number(cantidad) });
-                    $q.notify({
-                        type: 'positive',
-                        message: `Se modificó  correctamente`
-                    });
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error modificando ventas:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        }
-
-        const actualizarGastos = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idGasto = selectedRow.Id_Gastos;
-                let importe = selectedRow.Importe.replace(/^\$\s?/, '');
-                importe = importe.replace(/\./g, '').replace(',', '.');
-                try {
-                    await editGastos(idGasto, { Importe: importe });
-                    $q.notify({
-                        type: 'positive',
-                        message: `Se modificó  correctamente`
-                    });
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error modificando ingreso:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        const actualizarDevolucion = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idDevolucion = selectedRow.id_Devolucion;
-                const cantidad = selectedRow.Cantidad;
-                try {
-                    await editDevolucion(idDevolucion, { nuevaCantidad: Number(cantidad) });
-                    $q.notify({
-                        type: 'positive',
-                        message: `Se modificó  correctamente`
-                    });
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error modificando devolucion:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        const actualizarProduccion = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const idProduccion = selectedRow.id_Produccion;
-                const cantidad = selectedRow.Cantidad;
-                try {
-                    await editProduccion(idProduccion, Number(cantidad)); 
-                    $q.notify({
-                        type: 'positive',
-                        message: `Se modificó  correctamente`
-                    });
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error modificando produccion:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        const actualizarCompras = async () => {
-            if (filaSeleccionada.value !== null) {
-                const selectedRow = rows.value[filaSeleccionada.value];
-                const estado = selectedRow.Estado;
-                const idCompras = selectedRow.Id_Compras;
-                const importe = selectedRow.Importe;
-                const iva21 = selectedRow.IVA21;
-                const iva10_5 = selectedRow.IVA10_5;
-                const percIva = selectedRow.PercepcionIVA;
-                const flete = selectedRow.Flete;
-                const percepcionesMuniCba = selectedRow.PercepcionesMuniCba;
-                try {
-                    await editCompras({
-                        idCompra: idCompras,
-                        compra: {
-                            Importe: importe,
-                            IVA21: iva21,
-                            IVA10_5: iva10_5,
-                            PercepcionIVA: percIva,
-                            PercepcionesMuniCba: percepcionesMuniCba,
-                            Flete: flete,
-                        },
-                        estadoId: estado
-                    });
-
-                    $q.notify({
-                        type: 'positive',
-                        message: `Se modificó  correctamente`
-                    });
-                    obtenerDatosTablas();
-                } catch (error) {
-                    console.error('Error modificando ingreso:', error);
-                }
-            } else {
-                console.error('No hay fila seleccionada.');
-            }
-        };
-
-        watch([fechaDesde, fechaHasta], ([newFechaDesde, newFechaHasta]) => {
+        watch([fechaDesde, fechaHasta], () => {
             obtenerDatosTablas();
         });
 
         onMounted(() => {
             obtenerDatosTablas();
-            logInitialData();
         });
 
-
         return {
-            columns,
+            displayColumns,
             rows,
-            rowDatas,
             currentView,
-            getTableData,
-            consularTabla,
-            esEditable,
-            permitirEditar,
             permitirAgregar,
             permitirModificar,
             permitirEliminar,
             permitirFiltrar,
             verHistorial,
             abrirHistorial,
-            guardarEdit,
-            editValue,
             filaSeleccionada,
             seleccionarFila,
             isSelected,
             volverAGestion,
-            mostrarFormulario,
             fechaDesde,
             fechaHasta,
-            //METODOS ABM
-            handleModificar,
+            obtenerDatosTablas,
             handleEliminar,
-            eliminarCliente,
-            eliminarVendedor,
-            eliminarProveedor,
-            eliminarUsuario
+            mostrarFormularioAlta,
+            componenteFormularioActivo,
+            mostrarModalModificar,
+            modeloModificar,
+            guardandoModificar,
+            estadoOptions,
+            camposModificar,
+            abrirModalModificar,
+            guardarModificar,
         };
     }
 };
 </script>
 
 <style scoped>
-table {
+/* Las tablas de gestion son anchas (una columna por campo del modelo), asi que
+   el scroll horizontal vive en el contenedor y no empuja el layout del panel. */
+.tabla-scroll {
+    overflow-x: auto;
+    background: var(--color-surface-raised);
+}
+
+.tabla-gestion {
     width: 100%;
     border-collapse: collapse;
+    white-space: nowrap;
 }
 
-th,
-td {
-    border: 1px solid #ddd;
-    padding: 8px;
+.tabla-gestion th {
+    background: #fafbfc;
+    color: var(--color-ink-muted);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: left;
+    padding: 0.875rem 0.75rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
-th {
-    background-color: #f2f2f2;
+.tabla-gestion td {
+    font-size: 0.875rem;
+    color: var(--color-ink);
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid #f1f3f7;
+}
+
+.tabla-gestion tbody tr {
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+
+.tabla-gestion tbody tr:hover {
+    background: #f9fafc;
 }
 
 .selected-row {
-    background-color: #d3d3d3;
-    /* Color de fondo para la fila seleccionada */
+    background: color-mix(in srgb, var(--color-brand-accent) 12%, white) !important;
+    box-shadow: inset 3px 0 0 var(--color-brand-accent);
+}
+
+.celda-vacia {
+    text-align: center;
+    padding: 2.5rem 0.75rem;
+    color: var(--color-ink-muted);
+}
+
+.dialog-formulario {
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 </style>

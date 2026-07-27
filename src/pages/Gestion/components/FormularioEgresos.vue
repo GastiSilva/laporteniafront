@@ -1,8 +1,8 @@
 <template>
-    <q-card class="q-pa-lg q-mx-auto shadow-2" style="max-width: 900px; border-radius: 12px;">
-        <q-btn label="Volver" flat rounded style="background-color: #0e1d75; color: white;" @click="$emit('volver')" />
-        <q-card-section>
-            <div class="text-h5 text-center" style="color: #0e1d75;">Agregar Egreso</div>
+    <div>
+        <q-card-section class="row items-center justify-between q-pb-none">
+            <div class="text-subtitle1 text-weight-semibold">Agregar Egreso</div>
+            <q-btn icon="close" flat round dense @click="$emit('volver')" />
         </q-card-section>
         <q-card-section>
             <q-form @submit.prevent="guardarEgreso">
@@ -21,7 +21,7 @@
                 </div>
             </q-form>
         </q-card-section>
-    </q-card>
+    </div>
 </template>
 
 <script>

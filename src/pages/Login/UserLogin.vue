@@ -1,40 +1,64 @@
 <template>
   <AdminLayout>
-    <q-page class="login-page"> 
-      <div class="login-container"> 
-        <q-card class="q-pa-md login-card"
-          style="max-width: 600px; background-color: rgba(255, 255, 255, 0.9); margin: 0;">
-          <q-card-section>
-            <q-form @submit.prevent="login">
-              <q-input v-model="username" label="Nombre de usuario" type="text" outlined required class="q-mb-md"
-                style="min-height: 50px;" />
-                <q-input v-model="password" label="Contraseña" :type="showPassword ? 'text' : 'password'" outlined required class="q-mt-md"
-  style="min-height: 50px;">
-  <template v-slot:append>
-    <q-icon :name="showPassword ? 'visibility_off' : 'visibility'" @click="togglePasswordVisibility" />
-  </template>
-</q-input>
+    <q-page class="login-page flex flex-center q-pa-md">
+      <q-card class="w-full max-w-[420px] rounded-2xl shadow-xl bg-white/95 backdrop-blur-sm">
+        <q-card-section class="px-6 pt-8 pb-2 text-center">
+          <h1 class="text-2xl font-bold text-brand-primary m-0">Iniciar sesión</h1>
+          <p class="text-sm text-gray-500 mt-2 mb-0">Accedé al panel de administración</p>
+        </q-card-section>
 
-              <q-btn label="Iniciar sesión" :style="{ backgroundColor: '#292678', color: 'white' }" type="submit"
-                class="q-mt-md full-width" />
+        <q-card-section class="px-6 pb-8">
+          <q-form class="flex flex-col gap-4" @submit.prevent="login">
+            <q-input
+              v-model="username"
+              label="Nombre de usuario"
+              type="text"
+              outlined
+              required
+              autofocus
+            />
 
-              <div v-if="errorMessage" class="error-message">
-                {{ errorMessage }}
-              </div>
+            <q-input
+              v-model="password"
+              label="Contraseña"
+              :type="showPassword ? 'text' : 'password'"
+              outlined
+              required
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="showPassword ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="togglePasswordVisibility"
+                />
+              </template>
+            </q-input>
 
-            </q-form>
+            <q-btn
+              label="Iniciar sesión"
+              type="submit"
+              :loading="loading"
+              class="w-full text-white"
+              :style="{ backgroundColor: 'var(--color-brand-primary)' }"
+              unelevated
+              no-caps
+            />
 
-          </q-card-section>
-        </q-card>
-      </div>
+            <div v-if="errorMessage" class="text-sm text-red-600 text-center">
+              {{ errorMessage }}
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
     </q-page>
   </AdminLayout>
 </template>
 
 <script>
 import { ref } from 'vue';
-import { loginUserAPI } from 'src/pages/Login/service/LoginAPI';
+import { loginUserAPI } from 'src/pages/Login/service/LoginService';
 import AdminLayout from 'src/layouts/AdminLayout.vue';
+import { useAuthStore } from 'src/stores/auth';
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
 
@@ -44,47 +68,57 @@ export default {
   },
   setup() {
     const $q = useQuasar();
+    const auth = useAuthStore();
     const username = ref('');
     const password = ref('');
     const errorMessage = ref('');
+    const loading = ref(false);
+    const showPassword = ref(false);
     const { push } = useRouter();
 
-    const login = () => {
-      loginUserAPI(username.value, password.value)
-        .then((success) => {
-          if (success) {
-            $q.notify({
-                    type: "positive",
-                    message: "Bienvenido al sistema.",
-                    position: "top",
-                });
-            push('/adminHome'); 
-          } else {
-            errorMessage.value = 'Usuario o contraseña incorrectos';
-          }          
-        })
-        .catch((error) => {
+    const login = async () => {
+      loading.value = true;
+      errorMessage.value = '';
+
+      try {
+        const result = await loginUserAPI(username.value, password.value);
+
+        if (result?.token) {
+          auth.login({ token: result.token, usuario: result.usuario });
+          $q.notify({
+            type: 'positive',
+            message: 'Bienvenido al sistema.',
+            position: 'top',
+          });
+          push('/adminHome');
+        } else {
           errorMessage.value = 'Usuario o contraseña incorrectos';
-        });
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('Login error:', error);
+        }
+        errorMessage.value = error.response?.data?.message || 'Usuario o contraseña incorrectos';
+      } finally {
+        loading.value = false;
+      }
     };
 
-    const showPassword = ref(false)
-
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value
-}
+    const togglePasswordVisibility = () => {
+      showPassword.value = !showPassword.value;
+    };
 
     return {
       username,
       password,
       errorMessage,
+      loading,
       showPassword,
       togglePasswordVisibility,
       login,
     };
   },
 };
-
 </script>
 
 <style scoped>
@@ -93,32 +127,5 @@ const togglePasswordVisibility = () => {
   background-size: cover;
   background-position: center;
   min-height: 100vh;
-  background-repeat: no-repeat;
-  margin: 0;
-  padding: 0;
-}
-
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  width: 100%;
-}
-
-.login-card {
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-}
-
-.q-mt-md full-width {
-  background-color: #292678;
-}
-
-.error-message {
-  color: red; /* Estilo para resaltar el mensaje de error */
-  margin-top: 10px; /* Espaciado */
 }
 </style>

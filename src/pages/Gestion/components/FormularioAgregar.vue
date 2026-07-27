@@ -1,7 +1,8 @@
 <template>
-  <q-card class="q-pa-lg q-mx-auto shadow-2" style="max-width: 900px; border-radius: 12px;">
-    <q-card-section>
-      <div class="text-h5 text-center" style="color: #0e1d75;">Agregar Datos</div>
+  <div>
+    <q-card-section class="row items-center justify-between q-pb-none">
+      <div class="text-subtitle1 text-weight-semibold">Agregar Datos</div>
+      <q-btn icon="close" flat round dense @click="$emit('volver')" />
     </q-card-section>
     <q-card-section>
       <q-form @submit.prevent="handleSubmit">
@@ -20,11 +21,11 @@
         </div>
         <div class="row justify-center q-gutter-md">
           <q-btn label="Agregar" type="submit" color="primary" class="q-px-lg" @click="handleAgregar" />
-          <q-btn label="Volver" flat color="negative" @click="$emit('volver')" />
+          <q-btn label="Cancelar" flat color="grey-8" @click="$emit('volver')" />
         </div>
       </q-form>
     </q-card-section>
-  </q-card>
+  </div>
 </template>
 
 <script>
@@ -156,83 +157,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.form-container {
-  padding: 20px;
-  background-color: #f3f4f6;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.form-card {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 20px;
-  background-color: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
-
-.nested-form {
-  background-color: #f9fafb;
-  padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.form-title {
-  font-size: 2rem;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.form-subtitle {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: #4b5563;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
-  font-weight: 500;
-  color: #374151;
-}
-
-.form-input {
-  padding: 12px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  transition: border-color 0.3s;
-}
-
-.form-input:focus {
-  border-color: #6366f1;
-  outline: none;
-}
-
-.form-button {
-  padding: 12px;
-  background-color: #6366f1;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.form-button:hover {
-  background-color: #4f46e5;
-}
-</style>

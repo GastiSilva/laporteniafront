@@ -1,1 +1,130 @@
-/* app global css */
+/* Tailwind, without Preflight: Quasar ships its own base/reset styles,
+   and Tailwind's reset would fight it (box-sizing, margins, form control resets, etc).
+
+   Utilities are imported WITHOUT `layer(utilities)` on purpose: Quasar's own CSS
+   (quasar.css) is plain, unlayered CSS, and per the CSS Cascade Layers spec, unlayered
+   rules always beat anything inside a named layer — regardless of source order. If
+   Tailwind utilities were layered, Quasar's `h1`/`.q-card`/etc. defaults would silently
+   win over classes like `text-2xl` or `rounded-2xl`. Keeping utilities unlayered lets
+   normal specificity + source-order rules apply, and since app.css loads after
+   quasar.css, Tailwind wins on same-specificity ties (e.g. class vs class). */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css';
+
+/* Tokens de marca — fuente unica de verdad, consumida como utilidades de Tailwind
+   (bg-brand-primary, text-ink-muted, ...) y por la paleta de Quasar mas abajo. */
+@theme {
+  /* Marca */
+  --color-brand-primary: #292678;
+  --color-brand-secondary: #0e1d75;
+  --color-brand-accent: #1e88e5;
+
+  /* Superficies y texto: grises neutros en vez del crema #ffffed original,
+     que era lo que mas envejecia la interfaz. */
+  --color-surface: #f5f6fa;
+  --color-surface-raised: #ffffff;
+  --color-border-subtle: #e4e7ee;
+  --color-ink: #1a1d29;
+  --color-ink-muted: #6b7280;
+}
+
+/* Quasar lee su paleta de componentes de estas variables, asi que queda
+   sincronizada con los tokens de arriba en vez de duplicar los valores. */
+:root {
+  --q-primary: var(--color-brand-primary);
+  --q-secondary: var(--color-brand-secondary);
+  --q-accent: var(--color-brand-accent);
+}
+
+/* ---------------------------------------------------------------------------
+   Primitivas de layout compartidas por todas las vistas del panel.
+   Viven aca y no como utilidades sueltas en cada template porque los selectores
+   internos de Quasar (.q-table thead th, .q-field__control, ...) son mas
+   especificos que una clase suelta y le ganarian.
+   --------------------------------------------------------------------------- */
+
+/* Encabezado de pagina: titulo a la izquierda, acciones a la derecha. */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+  margin: 0.25rem 0 0;
+}
+
+/* Tarjeta blanca sobre el fondo gris: contenedor base de filtros y tablas. */
+.surface-card {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+}
+
+/* Tabla con estetica de panel de administracion: encabezado claro con
+   micro-etiquetas en mayusculas, filas con hover, sin bordes pesados. */
+.data-table {
+  border-radius: 12px;
+  border: 1px solid var(--color-border-subtle);
+  overflow: hidden;
+}
+
+.data-table .q-table thead th,
+.data-table thead th {
+  background: #fafbfc;
+  color: var(--color-ink-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
+}
+
+.data-table tbody td {
+  color: var(--color-ink);
+  font-size: 0.875rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f3f7;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background: #f9fafc;
+}
+
+/* Celda de acciones: los botones van en linea.
+   Sin esto se apilaban, porque un `.q-btn { display: flex }` heredado los
+   convertia en bloque. Se declara explicito para que no vuelva a pasar. */
+.data-table .cell-actions {
+  white-space: nowrap;
+}
+
+.data-table .cell-actions .q-btn {
+  display: inline-flex;
+}
+
+/* Numeros alineados a la derecha y tabulares, para que las columnas de importes
+   se lean como columna y no como texto suelto. */
+.cell-numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

@@ -21,7 +21,7 @@ module.exports = configure(function (/* ctx */) {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
-      'i18n',
+      'pinia',
       'axios',
     ],
 
@@ -50,7 +50,10 @@ module.exports = configure(function (/* ctx */) {
         browser: ['es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1'],
         node: 'node20'
       },
-      vueRouterMode: 'hash', // available values: 'hash', 'history'
+      // El router de src/router/index.js usa createWebHistory(), asi que la app corre
+      // en modo history. Antes esto decia 'hash' y no coincidia con la realidad.
+      // El servidor que sirva el build necesita fallback a index.html (ver public/_redirects).
+      vueRouterMode: 'history', // available values: 'hash', 'history'
       
       viteVuePluginOptions: {
         server: {
@@ -66,9 +69,6 @@ module.exports = configure(function (/* ctx */) {
       },
     
       vitePlugins: [
-        ['@intlify/vite-plugin-vue-i18n', {
-          include: path.resolve(__dirname, './src/i18n/**')
-        }],
         ['vite-plugin-checker', {
           eslint: {
             lintCommand: 'eslint "./**/*.{js,mjs,cjs,vue}"'

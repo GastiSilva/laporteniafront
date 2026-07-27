@@ -1,63 +1,105 @@
 <template>
-    <div class="exportar-datos-page">
-        <h5 class="q-mb-xs q-mt-md">Exportar Datos</h5>
-        <div class="row">
-            <div class="col-3 q-mt-xs" >
-                <q-card-section>
+    <div class="q-pa-lg">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Exportar Datos</h1>
+                <p class="page-subtitle">Descargá cualquier tabla del sistema en formato Excel.</p>
+            </div>
+        </div>
+
+        <div class="surface-card q-pa-lg q-mb-md">
+            <div class="row q-col-gutter-md items-center">
+                <div class="col-12 col-md-4">
                     <q-select
                         v-model="selectedTable"
                         :options="tables"
-                        label="Seleccione la tabla"
+                        label="Seleccioná la tabla"
                         outlined
                         dense
-                        rounded
+                        bg-color="white"
+                        hide-bottom-space
                     />
-                </q-card-section>
+                </div>
+
+                <template v-if="mostrarfecha">
+                    <div class="col-6 col-md-3">
+                        <q-input
+                            v-model="fechaDesde"
+                            label="Fecha desde"
+                            type="date"
+                            outlined
+                            dense
+                            bg-color="white"
+                            hide-bottom-space
+                        />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <q-input
+                            v-model="fechaHasta"
+                            label="Fecha hasta"
+                            type="date"
+                            outlined
+                            dense
+                            bg-color="white"
+                            hide-bottom-space
+                        />
+                    </div>
+                </template>
+
+                <div class="col-12 col-md-2">
+                    <q-btn
+                        v-if="selectedTable"
+                        label="Exportar"
+                        color="primary"
+                        icon="download"
+                        unelevated
+                        no-caps
+                        class="full-width"
+                        :loading="exportando"
+                        @click="handleExportar"
+                    />
+                </div>
             </div>
-            
-            <q-card-actions align="right" class="q-mb-xs">
-                <q-btn v-if="selectedTable" label="Exportar" color="primary" icon="download"  @click="handleExportar"/>          
-                <div class="row q-ml-md q-mt-md q-mb-md" v-if="mostrarfecha">
-                    <q-input
-                        v-model="fechaDesde"
-                        label="Fecha Desde"
-                        type="date"
-                        outlined
-                        dense
-                        class="q-mr-md"
-                        style="width: 200px;"
-                    />
-                    <q-input
-                        v-model="fechaHasta"
-                        label="Fecha Hasta"
-                        type="date"
-                        outlined
-                        dense
-                        style="width: 200px;"
-                    />
-                </div>    
-            </q-card-actions>
-            
         </div>
-        <div class="row" v-if="selectedTable">
-            <div class="col-12">
-                <ExportarTablasView :selected-table="selectedTable" :fecha-desde="fechaDesde"
-                :fecha-hasta="fechaHasta" />
-            </div>
+
+        <ExportarTablasView
+            v-if="selectedTable"
+            :selected-table="selectedTable"
+            :fecha-desde="fechaDesde"
+            :fecha-hasta="fechaHasta"
+        />
+
+        <div v-else class="surface-card q-pa-xl column flex-center text-grey-6">
+            <q-icon name="table_view" size="42px" class="q-mb-sm" />
+            <div class="text-subtitle2">Elegí una tabla para previsualizarla</div>
         </div>
     </div>
 </template>
 
 <script>
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import  {   TraerTablasExport,
             GenerateExcellProduccion, GenerateExcellDevolucion, GenerateExcellVentas,
             GenerateExcellProductos, GenerateExcellIngresos, GenerateExcellClientes,
             GenerateExcellCompras, GenerateExcellEgresos
         } from './service/ExportarDatosService';
 import ExportarTablasView from './components/ExportarTablasView.vue';
+import { downloadBlob, MIME_XLSX } from 'src/composables/useFileDownload';
 import { useQuasar } from 'quasar';
 
+// Cada tabla exportable declara que servicio la genera y si acepta rango de fechas.
+// Antes esto vivia repartido en tres if-else paralelos (mostrarFechas, handleExportar
+// y ocho funciones generarExcell* identicas salvo por la llamada al servicio).
+const EXPORTADORES = {
+    Produccion:       { generar: GenerateExcellProduccion, porFecha: true },
+    Devolucion:       { generar: GenerateExcellDevolucion, porFecha: true },
+    VentasMercaderia: { generar: GenerateExcellVentas,     porFecha: true },
+    Ingresos:         { generar: GenerateExcellIngresos,   porFecha: true },
+    Compras:          { generar: GenerateExcellCompras,    porFecha: true },
+    Egresos:          { generar: GenerateExcellEgresos,    porFecha: true },
+    Productos:        { generar: GenerateExcellProductos,  porFecha: false },
+    Clientes:         { generar: GenerateExcellClientes,   porFecha: false },
+};
 
 export default {
     name: 'ExportarDatosView',
@@ -68,61 +110,45 @@ export default {
         const $q = useQuasar();
         const selectedTable = ref(null);
         const tables = ref([]);
-        const mostrarfecha = ref(false);
         const fechaDesde = ref(null);
         const fechaHasta = ref(null);
+        const exportando = ref(false);
 
-    
-        const exportData = () => {
-          
-        };
+        const mostrarfecha = computed(
+            () => EXPORTADORES[selectedTable.value]?.porFecha === true
+        );
 
-        
-        const mostrarFechas = () =>{
-            if(selectedTable.value === "Produccion"){
-                mostrarfecha.value = true;
-            }else if(selectedTable.value === "Devolucion"){
-                mostrarfecha.value = true;
-            }else if(selectedTable.value === "VentasMercaderia"){
-                mostrarfecha.value = true;
-            }else if(selectedTable.value === "Ingresos"){
-                mostrarfecha.value = true;
-            }else if(selectedTable.value === "Compras"){
-                mostrarfecha.value = true;
-            }else if(selectedTable.value === "Egresos"){
-                mostrarfecha.value = true;
-            }else{
-                mostrarfecha.value = false;
-            }
-        };
-
-        watch (selectedTable, (newValue) => {
-            if (newValue) {
-                mostrarFechas();
-                fechaDesde.value = null;
-                fechaHasta.value = null;
-            } else {
-                mostrarfecha.value = false;
-            }
+        watch(selectedTable, () => {
+            fechaDesde.value = null;
+            fechaHasta.value = null;
         });
-        
-        const handleExportar = () =>{
-            if(selectedTable.value === "Produccion"){
-                generarExcellProduccion();
-            }else if(selectedTable.value === "Devolucion"){
-                generarExcellDevolucion();
-            }else if(selectedTable.value === "VentasMercaderia"){
-                generarExcellVentasMercaderia();
-            }else if(selectedTable.value === "Productos"){
-                generarExcellProductos();
-            }else if(selectedTable.value === "Ingresos"){
-                generarExcellIngresos();
-            }else if(selectedTable.value === "Clientes"){
-                generarExcellClientes();        
-            }else if(selectedTable.value === "Compras"){
-                generarExcellCompras();
-            }else if(selectedTable.value === "Egresos"){
-                generarExcellEgresos();
+
+        const handleExportar = async () => {
+            const exportador = EXPORTADORES[selectedTable.value];
+            if (!exportador) return;
+
+            exportando.value = true;
+            try {
+                const response = exportador.porFecha
+                    ? await exportador.generar(fechaDesde.value, fechaHasta.value)
+                    : await exportador.generar();
+
+                downloadBlob(response.data, `${selectedTable.value}.xlsx`, MIME_XLSX);
+
+                $q.notify({
+                    message: 'Datos exportados correctamente',
+                    color: 'green',
+                    position: 'top',
+                });
+            } catch (error) {
+                console.error('Error al exportar:', error);
+                $q.notify({
+                    type: 'negative',
+                    message: 'No se pudieron exportar los datos.',
+                    position: 'top',
+                });
+            } finally {
+                exportando.value = false;
             }
         };
 
@@ -137,189 +163,6 @@ export default {
             }
         };
 
-        const generarExcellProduccion = async () => {
-            try {
-            const response = await GenerateExcellProduccion(fechaDesde.value, fechaHasta.value);
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${selectedTable.value}.xlsx`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            $q.notify({
-                message: 'Datos exportados correctamente',
-                color: 'green',
-                position: 'top',
-            });
-            } catch (error) {
-            console.log("Error: ", error);
-            }
-        };
-
-        const generarExcellDevolucion = async () => {
-            try {
-            const response = await GenerateExcellDevolucion(fechaDesde.value, fechaHasta.value);
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${selectedTable.value}.xlsx`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
-            }
-            catch (error){
-            console.log("Error: ", error);
-            }
-        };
-
-        const generarExcellVentasMercaderia = async () => {
-            try { 
-            const response = await GenerateExcellVentas(fechaDesde.value, fechaHasta.value);
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${selectedTable.value}.xlsx`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
-            }
-            catch (error){
-            console.log("Error: ", error);
-            }
-        };
-
-        const generarExcellProductos = async () => {
-            try { 
-            const response = await GenerateExcellProductos(selectedTable.value);
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${selectedTable.value}.xlsx`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
-            }
-            catch (error){
-            console.log("Error: ", error);
-            }
-        };
-
-        const generarExcellIngresos = async () => {
-            try { 
-            const response = await GenerateExcellIngresos(fechaDesde.value, fechaHasta.value);
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${selectedTable.value}.xlsx`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
-            }
-            catch (error){
-            console.log("Error: ", error);
-            }
-        };
-
-        const generarExcellClientes = async () => {
-            try { 
-            const response = await GenerateExcellClientes(selectedTable.value);
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${selectedTable.value}.xlsx`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
-            }
-            catch (error){
-            console.log("Error: ", error);
-            }
-        };
-
-        const generarExcellCompras = async () => {
-            try { 
-            const response = await GenerateExcellCompras(fechaDesde.value, fechaHasta.value);
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${selectedTable.value}.xlsx`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
-            }
-            catch (error){
-            console.log("Error: ", error);
-            }
-        };
-
-        const generarExcellEgresos = async () => {
-            try { 
-            const response = await GenerateExcellEgresos(fechaDesde.value, fechaHasta.value);
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${selectedTable.value}.xlsx`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            $q.notify({
-                    message: 'Datos exportados correctamente',
-                    color: 'green',
-                    position: 'top',
-                });
-            }
-            catch (error){
-            console.log("Error: ", error);
-            }
-        };
-
         onMounted(() => {
             tablasImport();
         });
@@ -327,19 +170,11 @@ export default {
         return {
             selectedTable,
             tables,
-            exportData,
             tablasImport,
             mostrarfecha,
             fechaDesde,
             fechaHasta,
-            generarExcellProduccion,
-            generarExcellDevolucion,
-            generarExcellVentasMercaderia,
-            generarExcellProductos,
-            generarExcellIngresos,
-            generarExcellClientes,
-            generarExcellCompras,
-            generarExcellEgresos,
+            exportando,
             handleExportar
         };
     }

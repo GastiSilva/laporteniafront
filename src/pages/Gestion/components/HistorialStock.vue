@@ -38,7 +38,7 @@
 <script>
 import { ref, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { fetchProducts } from '../../../components/Tablas/service/AddDatosAPI'
+import { fetchProducts } from 'src/pages/Movimientos/service/MovimientosService'
 import { getProduccion, getDevolucion, getVentasMercaderia } from '../service/GestionService'
 
 export default {

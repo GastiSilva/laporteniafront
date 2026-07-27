@@ -1,9 +1,8 @@
 <template>
-  <q-card class="q-pa-lg q-mx-auto shadow-2" style="max-width: 900px; border-radius: 12px;">
-    <q-btn label="Volver" flat rounded style="background-color: #0e1d75; color: white;" @click="$emit('volver')" />
-
-    <q-card-section>
-      <div class="text-h5 text-center text-secondary">Agregar Ingreso</div>
+  <div>
+    <q-card-section class="row items-center justify-between q-pb-none">
+      <div class="text-subtitle1 text-weight-semibold">Agregar Ingreso</div>
+      <q-btn icon="close" flat round dense @click="$emit('volver')" />
     </q-card-section>
 
     <q-card-section>
@@ -39,14 +38,14 @@
         </div>
       </q-form>
     </q-card-section>
-  </q-card>
+  </div>
 </template>
 
 <script>
 import { ref, onMounted, watch } from "vue";
 import { useQuasar } from "quasar";
 import { addIngresos, getVendedores } from "../service/GestionService";
-import { obtenerEstados } from 'src/components/Remitos/service/RemitosService'
+import { obtenerEstados } from 'src/pages/Remitos/service/RemitosService'
 
 
 export default {
@@ -77,6 +76,7 @@ export default {
     const selectedVendedor = ref(null)
     const estadoOptions = ref([])
     const selectedEstado = ref(null)
+    const errorIntento = ref(false)
 
 
     const cargarEstados = async () => {
@@ -133,6 +133,13 @@ export default {
     })
 
     const guardarIngreso = async () => {
+      if (!selectedEstado.value) {
+        errorIntento.value = true;
+        $q.notify({ type: 'warning', message: 'Seleccioná un estado antes de guardar.' });
+        return;
+      }
+      errorIntento.value = false;
+
       try {
         const metodoPago = [];
         if (ingreso.value.Cheque) metodoPago.push("Cheque");
@@ -175,6 +182,7 @@ export default {
       };
       selectedVendedor.value = null;
       selectedEstado.value = null;
+      errorIntento.value = false;
     };
 
     onMounted(() => {
@@ -191,15 +199,10 @@ export default {
       selectedVendedor,
       selectedEstado,
       estadoOptions,
+      errorIntento,
       guardarIngreso,
       limpiarFormulario
     };
   }
 };
 </script>
-
-<style scoped>
-.text-secondary {
-  color: #0e1d75;
-}
-</style>

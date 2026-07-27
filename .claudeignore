@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.quasar/
+
+# Cordova / Capacitor (unused platforms, kept out of context)
+/src-cordova
+/src-capacitor
+
+# Lockfiles (large, low signal for reasoning about code)
+package-lock.json
+yarn.lock
+
+# Generated / temporary Quasar files
+quasar.config.*.temporary.compiled*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env / secrets
+# NOTE: .env / .env.prod here only hold non-secret config (API_BASE_URL), so they're
+# intentionally NOT ignored — Claude should be able to see them. Only local overrides
+# (which may hold machine-specific secrets) are excluded.
+.env.local
+.env.*.local
+
+# Editor / OS junk
+.DS_Store
+.thumbs.db
+.idea/
+*.suo
+
+# Binary assets (large, not useful as text context)
+src/assets/*.png
+src/assets/*.jpg
+src/assets/*.jpeg
+public/**/*.png
+public/**/*.jpg
+public/**/*.jpeg
+public/**/*.ico
